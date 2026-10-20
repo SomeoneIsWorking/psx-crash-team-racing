@@ -36,7 +36,7 @@ struct WidenedViewProjection {
 
 // A 4:3 plan reproduces the retail triple exactly.
 [[nodiscard]] WidenedViewProjection widenViewProjection(const GuestViewProjection &view,
-                                                        const GuestProjectionPlan &plan,
+                                                        const psx::present::GuestProjectionPlan &plan,
                                                         int32_t distanceScaleNumerator = 1,
                                                         int32_t distanceScaleDenominator = 1);
 

@@ -44,11 +44,13 @@ public:
 
   // The plan is derived from the guest's own view on every publication: the boot display mode is not
   // the projected extent (512 wide, OFX = width/2).
-  using PlanSource = std::function<GuestProjectionPlan(Core &, const GuestViewProjection &)>;
+  using PlanSource = std::function<psx::present::GuestProjectionPlan(Core &, const GuestViewProjection &)>;
   void setPlanSource(PlanSource source);
 
   // A fixed plan overrides any plan source.
-  void latchPlan(const GuestProjectionPlan &plan, int32_t distanceScaleNumerator, int32_t distanceScaleDenominator);
+  void latchPlan(const psx::present::GuestProjectionPlan &plan,
+                 int32_t distanceScaleNumerator,
+                 int32_t distanceScaleDenominator);
 
   // What the last publication actually put in the GTE: retail when no plan is latched or the
   // plan does not widen.
@@ -59,7 +61,7 @@ public:
   [[nodiscard]] bool planLatched() const {
     return planLatched_;
   }
-  [[nodiscard]] const GuestProjectionPlan &plan() const {
+  [[nodiscard]] const psx::present::GuestProjectionPlan &plan() const {
     return plan_;
   }
   [[nodiscard]] int32_t distanceScaleNumerator() const {
@@ -75,7 +77,7 @@ private:
 
   ProjectionPublication previous_{};
   ProjectionPublication current_{};
-  GuestProjectionPlan plan_{};
+  psx::present::GuestProjectionPlan plan_{};
   int32_t distanceScaleNumerator_ = 1;
   int32_t distanceScaleDenominator_ = 1;
   bool planLatched_ = false;

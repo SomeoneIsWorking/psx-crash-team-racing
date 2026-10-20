@@ -17,10 +17,10 @@ class WidescreenOwner final {
 public:
   struct LatchResult {
     bool widens = false;
-    GuestProjectionPlan plan{};
+    psx::present::GuestProjectionPlan plan{};
   };
 
-  GuestProjectionPlan planFor(Core &core, const GuestViewProjection &view);
+  psx::present::GuestProjectionPlan planFor(Core &core, const GuestViewProjection &view);
 
   // Resolved on the first publication, not at boot.
   [[nodiscard]] bool latched() const;
@@ -28,10 +28,10 @@ public:
   // The resolved plan lives in the projection owner.
   void report(const GuestViewProjection &view) const;
 
-  static const char *aspectName(PresentationAspect aspect);
+  static const char *aspectName(psx::present::PresentationAspect aspect);
 
 private:
-  GuestProjectionPlan plan_{};
+  psx::present::GuestProjectionPlan plan_{};
   int32_t distanceScaleNumerator_ = 1;
   int32_t distanceScaleDenominator_ = 1;
   bool latched_ = false;
