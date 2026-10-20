@@ -1,5 +1,7 @@
 #pragma once
 
+#include "command_args.h"
+
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -12,8 +14,8 @@ namespace ctr {
 // through the guest's own level-load request, which main-loop state 3 consumes through its loader.
 class LevelWarp {
 public:
-  // Parses one command line; the returned text answers the client.
-  std::string arm(const char *line, Core &core);
+  // The returned text answers the client.
+  std::string arm(const psx::debug::CommandArgs &args, Core &core);
   // Raises the armed request once the race still allows one; returns the level requested.
   std::optional<uint32_t> apply(Core &core);
 
