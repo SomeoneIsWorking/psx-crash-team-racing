@@ -2,6 +2,7 @@
 
 #include "core.h"
 #include "execution_control.h"
+#include "guest_call.h"
 #include "lightrec_executor.h"
 #include "native_dispatch.h"
 #include "resumable_guest_call.h"
@@ -13,7 +14,7 @@
 namespace ctr::guest {
 
 psx::cpu::ExecutionResult dispatch(Core &core, uint32_t address) {
-  return psx::cpu::dispatchGuestUntilExit(core, address, psx::cpu::ExecutionBudget::currentTurn(core));
+  return psx::cpu::dispatchGuestUntilExitNow(core, address);
 }
 
 uint32_t callToContinuation(Core &core, uint32_t address, uint32_t returnPc, std::string_view owner) {
