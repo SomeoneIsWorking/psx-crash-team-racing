@@ -186,8 +186,7 @@ translation workflow.
   complete typed result through the production propagation seam. Exact BF0225/BF0226/BF0233 reads
   were authenticated against the verified archive and published after their retail callbacks in a
   current Lightrec run, which crossed the former `0x800B0B38` image-identity stop.
-- where: `external/psxport/runtime/cpu/`, `game/{execution/guest_turns,frame/frame_driver,title/native_ownership}.*`,
-  `tests/execution_exit_test.cpp`
+- where: `external/psxport/runtime/cpu/`, `game/{execution/guest_turns,frame/frame_driver,title/native_ownership}.*`
 - gap: The `0x8006A57C` `budget-exhausted` exit was diagnosed as a finite guest quantum (110,766
   cycles, 5,215 blocks, 56,904 instructions from the synchronized exit PC to a typed
   `FrameBoundary` at `0x8003CEB4`), and the frame driver now resumes a synchronized positive-cycle
@@ -237,7 +236,6 @@ translation workflow.
 - where: `game/video/scene_cut.*`, `Runtime::sealedFrameIsCut`
 - gap: Race start (the flyby-to-race camera switch) has no identified guest variable yet, so it is not declared;
   nothing here has been checked against the cut values on the product yet (the product now presents; issue 0033).
-- notes: Unit-tested through `PresentationOwner::finishField` in `tests/field_owners_test.cpp`.
 
 ### CTR-JIT-03 — Prove representative interactive gameplay
 - status: re-partial

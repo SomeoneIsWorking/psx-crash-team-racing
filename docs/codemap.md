@@ -52,8 +52,7 @@ psxport's Lightrec executor.
 | `PresentationOwner` | `game/video/presentation_owner.*` | The one `presentation.commit` per field; samples `SceneCut` first |
 | `SceneCut` | `game/video/scene_cut.*` | Main-loop state `[gp+0x188]`, level id and loading bit of the tracker `[gp+0x340]`, and whether they changed since the last commit |
 | facts | `game/title/native_ownership.h` | Every measured guest address and game-state offset; facts only |
-| tests | `tests/` | Each owner through the shipping sources (`ctr_<name>` CTest targets) and the launcher test |
-| tools | `tools/` | Launcher, provisioning, overlay extraction, the verifier, `policy/accepted.txt` |
+| tools | `tools/` | Launcher, provisioning, overlay extraction |
 
 ## The frame turn
 

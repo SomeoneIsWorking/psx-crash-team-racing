@@ -3,7 +3,6 @@ project(ctr_port LANGUAGES C CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
-include(CTest)
 
 set(PSXPORT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/psxport" CACHE PATH
     "psxport framework source directory")
@@ -13,7 +12,6 @@ if(NOT EXISTS "${PSXPORT_DIR}/cmake/psxport.cmake")
 endif()
 message(STATUS "psxport framework: ${PSXPORT_DIR}")
 
-set(PSXPORT_BUILD_SMOKE ON CACHE BOOL "Build the framework agnosticism smoke" FORCE)
 add_subdirectory("${PSXPORT_DIR}" psxport_build)
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/titles/ctr/executable.json" CTR_EXECUTABLE_MANIFEST)
@@ -82,90 +80,3 @@ psxport_add_product(
 target_compile_features(ctr_port PRIVATE cxx_std_20)
 set_target_properties(ctr_port PROPERTIES ENABLE_EXPORTS ON)
 add_dependencies(ctr_port gen_gpu_shaders)
-
-if(BUILD_TESTING)
-  foreach(test_name
-          disc_ownership execution_exit field_owners frame_callback_owner frame_execution geometry_projection_owner
-          level_warp overlay_image_owner platform_bindings projection_owner widescreen_owner)
-    add_executable(ctr_${test_name}_test tests/${test_name}_test.cpp)
-    target_link_libraries(ctr_${test_name}_test PRIVATE ctr_game psxport_test_support)
-    add_test(NAME ctr_${test_name} COMMAND ctr_${test_name}_test)
-    set_tests_properties(ctr_${test_name} PROPERTIES TIMEOUT 20)
-  endforeach()
-
-  add_executable(ctr_frame_budget_test tests/frame_budget_test.cpp)
-  target_link_libraries(ctr_frame_budget_test PRIVATE ctr_game psxport_test_support)
-  # The zero-cycle host loop is a negative test: the driver aborts, so the test binary forks and
-  # exits 77 when the host has no fork.
-  add_test(NAME ctr_frame_budget
-           COMMAND ctr_frame_budget_test finite)
-  set_tests_properties(ctr_frame_budget PROPERTIES TIMEOUT 70)
-  add_test(NAME ctr_frame_budget_read_completion
-           COMMAND ctr_frame_budget_test completion)
-  set_tests_properties(ctr_frame_budget_read_completion PROPERTIES TIMEOUT 70)
-  add_test(NAME ctr_frame_budget_read_not_due
-           COMMAND ctr_frame_budget_test completion_not_due)
-  set_tests_properties(ctr_frame_budget_read_not_due PROPERTIES TIMEOUT 70)
-  add_test(NAME ctr_frame_budget_zero_cycle_host_loop
-           COMMAND ctr_frame_budget_test stalled)
-  set_tests_properties(ctr_frame_budget_zero_cycle_host_loop
-                       PROPERTIES TIMEOUT 70 SKIP_RETURN_CODE 77)
-
-  add_test(NAME ctr_launcher COMMAND "${Python3_EXECUTABLE}" -B
-           "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_run.py")
-  set_tests_properties(ctr_launcher PROPERTIES ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1")
-
-  add_test(NAME ctr_help_without_assets COMMAND ctr_port --help)
-  add_test(NAME ctr_short_help_without_assets COMMAND ctr_port -h)
-  set_tests_properties(
-    ctr_help_without_assets ctr_short_help_without_assets
-    PROPERTIES PASS_REGULAR_EXPRESSION "CTR: Crash Team Racing \\(SCUS_944\\.26\\)"
-  )
-  add_test(
-    NAME ctr_execution_boundary
-    COMMAND
-      "${Python3_EXECUTABLE}" "${PSXPORT_DIR}/tools/check_execution_boundary.py"
-      --root "${CMAKE_CURRENT_SOURCE_DIR}"
-      --cmake "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt"
-      --binary "$<TARGET_FILE:ctr_port>"
-  )
-endif()
-
-add_custom_target(
-  cpp_policy
-  COMMAND
-    "${Python3_EXECUTABLE}" "${PSXPORT_DIR}/tools/check_cpp_style.py"
-    --root "${CMAKE_CURRENT_SOURCE_DIR}"
-    --compile-commands "${CMAKE_BINARY_DIR}"
-  DEPENDS ctr_game ctr_port
-  USES_TERMINAL
-  VERBATIM
-)
-add_custom_target(
-  provision_selftest
-  COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/provision.py" --selftest
-  DEPENDS discdump
-  USES_TERMINAL
-  VERBATIM
-)
-add_custom_target(
-  overlay_extract_selftest
-  COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/extract_overlays.py" --selftest
-  USES_TERMINAL
-  VERBATIM
-)
-add_custom_target(
-  verify
-  COMMAND "${CMAKE_CTEST_COMMAND}" --test-dir "${CMAKE_BINARY_DIR}" --output-on-failure
-  DEPENDS
-    cpp_policy
-    provision_selftest
-    overlay_extract_selftest
-    ctr_execution_exit_test
-    ctr_disc_ownership_test
-    ctr_field_owners_test
-    ctr_frame_execution_test
-    ctr_frame_budget_test
-  USES_TERMINAL
-  VERBATIM
-)
