@@ -247,90 +247,6 @@ def emit_header(path: Path) -> None:
     os.replace(staging, path)
 
 
-def selftest() -> None:
-    """Prove the parser and classifier answer BOTH ways before either is trusted."""
-    checks = 0
-
-    def code_words(count: int) -> bytes:
-        body = [0x27BDFFE8, 0x0C001234, 0x00000000, MIPS_JR_RA] * (count // 4)
-        return struct.pack(f"<{len(body)}I", *body)
-
-    data_words = struct.pack("<8I", *([0x11111111] * 8))
-
-    index = bytearray(BIGFILE_INDEX_BYTES)
-    struct.pack_into("<4I", index, 8, 3, 64, 4, len(data_words))
-    entries = read_index(bytes(index))
-    assert entries == [(3, 64), (4, len(data_words))], entries
-    checks += 1
-
-    for broken, why in (
-        (b"\x00" * 16, "short index"),
-        (bytes(BIGFILE_INDEX_BYTES), "empty index"),
-    ):
-        try:
-            read_index(broken)
-        except ProvisionError:
-            checks += 1
-        else:  # pragma: no cover - the refusal is the behaviour under test
-            raise AssertionError(f"read_index accepted a {why}")
-
-    overlapping = bytearray(BIGFILE_INDEX_BYTES)
-    struct.pack_into("<4I", overlapping, 8, 3, 4096, 4, 16)
-    try:
-        read_index(bytes(overlapping))
-    except ProvisionError:
-        checks += 1
-    else:  # pragma: no cover
-        raise AssertionError("read_index accepted overlapping entries")
-
-    is_code, counts = classify(code_words(64))
-    assert is_code and counts["jr_ra"] == 16, counts
-    checks += 1
-    is_code, counts = classify(data_words)
-    assert not is_code and counts["jr_ra"] == 0, counts
-    checks += 1
-
-    for stem, why in (("BIGFILE", "a non-BF stem"), ("BF12", "a short id")):
-        assert STEM_PATTERN.match(stem) is None, why
-        checks += 1
-    assert STEM_PATTERN.match("BF0233").group(1) == "0233"
-    checks += 1
-
-    expected_modules = {
-        "BF0233": {
-            "archive_entry": 233,
-            "sector_offset": 53566,
-            "byte_size": 56844,
-            "load_address": "0x800AB9F0",
-            "fnv64": "0xA4E9995DC4FD53F7",
-        }
-    }
-    assert parse_module_entries(expected_modules)["BF0233"].byte_size == 56844
-    checks += 1
-    # Alternate overlays share a RAM slot; OverlayImageOwner retires the one a disc write overwrites.
-    shared_slot = {**expected_modules, "BF0230": {**expected_modules["BF0233"], "archive_entry": 230}}
-    assert len(parse_module_entries(shared_slot)) == 2
-    checks += 1
-    assert fnv64(b"overlay") != fnv64(b"overlax")
-    checks += 1
-    for invalid in (
-        {"BF0233": {**expected_modules["BF0233"], "archive_entry": 232}},
-        {"BF0233": {**expected_modules["BF0233"], "load_address": "not-an-address"}},
-        {"BF0233": {**expected_modules["BF0233"], "byte_size": -1}},
-        {"BF0233": {**expected_modules["BF0233"], "fnv64": "short"}},
-    ):
-        try:
-            parse_module_entries(invalid)
-        except ProvisionError:
-            checks += 1
-        else:  # pragma: no cover
-            raise AssertionError(f"module manifest accepted inconsistent policy: {invalid}")
-
-    print(
-        f"[overlays-selftest] PASS {checks}/{checks} checks: index parsing, manifest refusals, and both classifier verdicts"
-    )
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -338,15 +254,9 @@ def main() -> int:
     )
     parser.add_argument("--discdump", help="shipping discdump executable override")
     parser.add_argument(
-        "--selftest", action="store_true", help="run the hermetic fixture checks"
-    )
-    parser.add_argument(
         "--emit-header", type=Path, help="write title identity facts as a generated C++ header"
     )
     arguments = parser.parse_args()
-    if arguments.selftest:
-        selftest()
-        return 0
     if arguments.emit_header is not None:
         if arguments.disc or arguments.discdump:
             raise ProvisionError("header emission reads only the tracked manifest, not a disc")

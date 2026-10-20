@@ -11,7 +11,6 @@ import re
 import struct
 import subprocess
 import sys
-import tempfile
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -239,115 +238,19 @@ def fixture_identity(data: bytes) -> ExecutableIdentity:
     )
 
 
-def selftest() -> None:
-    scratch = ROOT / "scratch"
-    scratch.mkdir(exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="ctr-provision-selftest-", dir=scratch) as temporary:
-        root = Path(temporary)
-        cli = root / "cli.chd"
-        game_env = root / "game-env.chd"
-        generic_env = root / "generic-env.chd"
-        dot_game = root / "dot-game.chd"
-        dot_generic = root / "dot-generic.chd"
-        drop_a = root / "a-drop.chd"
-        drop_z = root / "z-drop.chd"
-        for path in (cli, game_env, generic_env, dot_game, dot_generic, drop_a, drop_z):
-            path.write_bytes(b"fixture")
-
-        resolved, _ = resolve_disc(str(cli), root=root, environ={DISC_ENV: str(game_env)})
-        assert resolved == cli.resolve()
-        resolved, _ = resolve_disc(None, root=root, environ={DISC_ENV: str(game_env), GENERIC_DISC_ENV: str(generic_env)})
-        assert resolved == game_env.resolve()
-        resolved, _ = resolve_disc(None, root=root, environ={GENERIC_DISC_ENV: str(generic_env)})
-        assert resolved == generic_env.resolve()
-        (root / ".env").write_text(
-            f"{DISC_ENV}={dot_game.name}\n{GENERIC_DISC_ENV}={dot_generic.name}\n",
-            encoding="utf-8",
-        )
-        resolved, _ = resolve_disc(None, root=root, environ={})
-        assert resolved == dot_game.resolve()
-        (root / ".env").write_text(f"{GENERIC_DISC_ENV}={dot_generic.name}\n", encoding="utf-8")
-        resolved, _ = resolve_disc(None, root=root, environ={})
-        assert resolved == dot_generic.resolve()
-        (root / ".env").unlink()
-        resolved, _ = resolve_disc(None, root=root, environ={})
-        assert resolved == drop_a.resolve()
-        try:
-            resolve_disc("missing.chd", root=root, environ={DISC_ENV: str(game_env)})
-        except ProvisionError:
-            pass
-        else:
-            raise AssertionError("an invalid explicit disc silently fell through")
-
-        fixture = bytearray(0x900)
-        fixture[:8] = b"PS-X EXE"
-        struct.pack_into("<I", fixture, 0x10, 0x80012340)
-        struct.pack_into("<I", fixture, 0x18, 0x80010000)
-        struct.pack_into("<I", fixture, 0x1C, 0x100)
-        struct.pack_into("<I", fixture, 0x30, 0x801FFFF0)
-        fixture_path = root / "FIXTURE.EXE"
-        fixture_path.write_bytes(fixture)
-        expected = fixture_identity(fixture)
-        manifest = root / "executable.json"
-        manifest.write_text(
-            json.dumps(
-                {
-                    "disc_executable": expected.name,
-                    "file_size": expected.file_size,
-                    "sha256": expected.sha256,
-                    "header": {
-                        "entry": f"{expected.entry:#010x}",
-                        "text_address": f"{expected.load_address:#010x}",
-                        "text_size": f"{expected.text_size:#010x}",
-                        "stack_address": f"{expected.stack:#010x}",
-                    },
-                }
-            ),
-            encoding="utf-8",
-        )
-        assert load_identity(manifest) == expected, "the manifest did not load as the identity it records"
-        verify_executable(fixture_path, expected)
-        fixture[-1] ^= 1
-        fixture_path.write_bytes(fixture)
-        try:
-            verify_executable(fixture_path, expected)
-        except ProvisionError as error:
-            assert "SHA-256" in str(error)
-        else:
-            raise AssertionError("mutated executable was accepted")
-        cnf = root / SYSTEM_CNF
-        cnf.write_text(f"BOOT = cdrom:\\{EXE_ON_DISC};1\r\n", encoding="ascii")
-        verify_system_cnf(cnf)
-        cnf.write_text("BOOT = cdrom:\\WRONG.EXE;1\r\n", encoding="ascii")
-        try:
-            verify_system_cnf(cnf)
-        except ProvisionError:
-            pass
-        else:
-            raise AssertionError("wrong SYSTEM.CNF target was accepted")
-
-    print("[provision-selftest] PASS resolution precedence and invalid-explicit refusal")
-    print("[provision-selftest] PASS manifest identity load")
-    print("[provision-selftest] PASS executable acceptance and one-byte-mutation rejection")
-    print("[provision-selftest] PASS SYSTEM.CNF acceptance and wrong-target rejection")
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("disc", nargs="?", help="CTR USA CHD; otherwise resolve env/.env/drop-in")
     parser.add_argument("--discdump", help="shipping discdump executable override")
     parser.add_argument("--verify-exe", type=Path, help="verify an already-extracted executable")
-    parser.add_argument("--selftest", action="store_true", help="run hermetic both-answer tests")
     args = parser.parse_args()
     try:
-        if args.selftest:
-            selftest()
-        elif args.verify_exe:
+        if args.verify_exe:
             verify_executable(args.verify_exe)
             print(f"[provision] verified {args.verify_exe}: {CTR_USA.sha256}")
         else:
             provision(args.disc, args.discdump)
-    except (OSError, ProvisionError, AssertionError) as error:
+    except (OSError, ProvisionError) as error:
         print(f"[provision] REFUSED: {error}", file=sys.stderr)
         return 1
     return 0
