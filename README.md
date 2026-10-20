@@ -50,11 +50,11 @@ comparison.
 See `docs/project-state.md` for factual coverage, `docs/project-goals.md` for completion conditions,
 `docs/codemap.md` for ownership, and `docs/re-frontier.md` for reverse-engineering status.
 
-## Verification
+## Building
 
-Run `uv run --frozen python tools/verify.py` for the asset-free Clang/Ninja product gate. The
-verifier uses PSXPort's shared dependency, build, test, and linked-execution checks, plus CTR's
-provisioning and native-owner tests. `external/psxport` is the workspace's live framework checkout. Lightrec
+There are no unit tests or gates. Build with `CC=clang CXX=clang++ uv run --frozen python
+external/psxport/tools/port/consumer_build.py --build build/agent --target ctr_port`.
+`external/psxport` is the workspace's live framework checkout. Lightrec
 and GNU Lightning are exact dependencies owned by that framework; custom checkout/prefix paths
 use its `PSXPORT_LIGHTREC_DIR` and `PSXPORT_LIGHTNING_PREFIX` configuration.
 

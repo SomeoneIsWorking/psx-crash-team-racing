@@ -305,8 +305,6 @@ def configure(build: Path, psxport: Path, cc: str, cxx: str) -> None:
             "-G",
             "Ninja",
             "-DCMAKE_BUILD_TYPE=Release",
-            "-DBUILD_TESTING=OFF",
-            "-DPSXPORT_BUILD_TESTS=OFF",
             f"-DPSXPORT_DIR={psxport}",
             f"-DCMAKE_C_COMPILER={cc}",
             f"-DCMAKE_CXX_COMPILER={cxx}",
