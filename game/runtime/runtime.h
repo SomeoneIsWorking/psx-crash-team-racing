@@ -28,7 +28,7 @@ public:
   // A change of main-loop state, level or loading bit between two committed fields.
   bool sealedFrameIsCut(Core &core) const override;
   // The base nullptr would resolve every plan to 4:3.
-  const GuestWidescreenProjection *guestWidescreenProjection() const override;
+  const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;
   // `warp <level-hex>`.
   bool titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) override;
 
@@ -45,7 +45,7 @@ private:
   // The guest interrupt delivers CD data-ready: 0x8001C7FC walks [0x8008D708] 2 -> 3 -> 4 per audio sector,
   // and state zero waits on it at 0x8003C94C.
   psx::cd::GuestInterruptLibcd libcd_;
-  GuestWidescreenProjection widescreen_;
+  psx::present::GuestWidescreenProjection widescreen_;
 };
 
 } // namespace ctr

@@ -16,7 +16,7 @@ namespace {
 // never a constant.
 } // namespace
 
-GuestProjectionPlan WidescreenOwner::planFor(Core &core, const GuestViewProjection &view) {
+psx::present::GuestProjectionPlan WidescreenOwner::planFor(Core &core, const GuestViewProjection &view) {
   if (!view.valid()) {
     lucent::error("wide",
                   "CTR widescreen cannot widen an unusable guest view: {}x{} H={}",
@@ -26,11 +26,12 @@ GuestProjectionPlan WidescreenOwner::planFor(Core &core, const GuestViewProjecti
     std::abort();
   }
   // Driven by the extent the guest's own publication carried (view descriptor +0x20/+0x22), not a display register.
-  const GuestProjectionPlan plan = psx::present::latchGuestProjection(core,
-                                                                      GuestProjectionGeometry{
-                                                                          .extent = {view.width, view.height},
-                                                                          .drawWidth = view.width,
-                                                                      });
+  const psx::present::GuestProjectionPlan plan =
+      psx::present::latchGuestProjection(core,
+                                         psx::present::GuestProjectionGeometry{
+                                             .extent = {view.width, view.height},
+                                             .drawWidth = view.width,
+                                         });
   if (!plan_.nativeProjectionExtent.width) {
     plan_ = plan;
     distanceScaleNumerator_ = plan.projectionExtent.width;
@@ -73,15 +74,15 @@ bool WidescreenOwner::latched() const {
   return latched_;
 }
 
-const char *WidescreenOwner::aspectName(PresentationAspect aspect) {
+const char *WidescreenOwner::aspectName(psx::present::PresentationAspect aspect) {
   switch (aspect) {
-  case PresentationAspect::Standard4x3:
+  case psx::present::PresentationAspect::Standard4x3:
     return "4:3";
-  case PresentationAspect::Wide16x9:
+  case psx::present::PresentationAspect::Wide16x9:
     return "16:9";
-  case PresentationAspect::UltraWide21x9:
+  case psx::present::PresentationAspect::UltraWide21x9:
     return "21:9";
-  case PresentationAspect::MatchSink:
+  case psx::present::PresentationAspect::MatchSink:
     return "match-sink";
   }
   return "?";

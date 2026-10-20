@@ -63,7 +63,7 @@ void ProjectionOwner::publish(Core &core, const RetailBody &retailBody, Source s
   current_ = next;
   // A fixed `latchPlan` wins over the callback.
   if (planSource_ && !planLatched_) {
-    const GuestProjectionPlan resolved =
+    const psx::present::GuestProjectionPlan resolved =
         planSource_(core,
                     GuestViewProjection{.width = next.nativeWidth,
                                         .height = next.nativeHeight,
@@ -81,7 +81,7 @@ void ProjectionOwner::setPlanSource(PlanSource source) {
   planSource_ = std::move(source);
 }
 
-void ProjectionOwner::latchPlan(const GuestProjectionPlan &plan,
+void ProjectionOwner::latchPlan(const psx::present::GuestProjectionPlan &plan,
                                 int32_t distanceScaleNumerator,
                                 int32_t distanceScaleDenominator) {
   if (distanceScaleNumerator <= 0 || distanceScaleDenominator <= 0) {

@@ -22,7 +22,7 @@ int32_t widenDistance(int32_t distance, int32_t numerator, int32_t denominator) 
 } // namespace
 
 WidenedViewProjection widenViewProjection(const GuestViewProjection &view,
-                                          const GuestProjectionPlan &plan,
+                                          const psx::present::GuestProjectionPlan &plan,
                                           int32_t distanceScaleNumerator,
                                           int32_t distanceScaleDenominator) {
   if (!view.valid()) {
