@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dma_irq.h"
 #include "guest_address_range.h"
 #include "identity/executable_identity.h"
 
@@ -50,9 +51,9 @@ inline constexpr uint32_t kStartupAudioServiceReturn = kStartupAudioLoop;
 inline constexpr uint32_t kStartupAudioWaitState = 0x8008D708u;
 // libapi's DMA callback table; slot 4 (SPU) holds libspu's completion wrapper (0x8007AB34).
 inline constexpr uint32_t kDmaCallback = 0x8008044Cu;
-inline constexpr int kSpuDmaChannel = 4;
 inline constexpr uint32_t kDmaCallbackTable = 0x8008CB08u;
-inline constexpr uint32_t kSpuDmaCallbackSlot = kDmaCallbackTable + 4u * kSpuDmaChannel;
+inline constexpr uint32_t kSpuDmaCallbackSlot =
+    kDmaCallbackTable + 4u * psx::dma::channelIndex(psx::dma::DmaChannel::Spu);
 inline constexpr uint32_t kShutdownDisplay = 0x80025208u;
 inline constexpr uint32_t kShutdownDisplayReturn = 0x8003CF30u;
 inline constexpr uint32_t kAfterShutdownVSync = 0x8003CF38u;

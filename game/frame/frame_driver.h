@@ -40,10 +40,8 @@ public:
   [[nodiscard]] const PresentationOwner &presentation() const;
 
   // Arms a `warp <level>` request; the next field raises it through the guest's own level-load request.
-  std::string armWarp(Core &core, const char *line);
+  std::string armWarp(Core &core, const psx::debug::CommandArgs &args);
 
-  // A missing or foreign driver is refused.
-  static FrameDriver &from(Core &core);
 
 private:
   // Guest overrides are bare function pointers, so each callsite needs its own entry point.

@@ -68,7 +68,7 @@ bool Runtime::titleCommand(Core &core, const psx::game::TitleCommandLine &input,
   std::fprintf(reply,
                "%s\n",
                driver == nullptr ? "refused: no CTR frame driver is running"
-                                 : driver->armWarp(core, input.line).c_str());
+                                 : driver->armWarp(core, input.args).c_str());
   return true;
 }
 

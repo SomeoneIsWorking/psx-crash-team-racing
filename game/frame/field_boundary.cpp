@@ -30,7 +30,7 @@ bool FieldBoundary::pending(Core &core) const {
 }
 
 void FieldBoundary::finishField(Core &core, uint32_t field) {
-  (void)core.executionControl().consume();
+  (void)core.executionControl().consume(core.pc, 0);
   presentation_.finishField(core);
   ++completedFields_;
 }

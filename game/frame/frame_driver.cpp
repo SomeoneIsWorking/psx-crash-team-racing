@@ -174,21 +174,8 @@ const PresentationOwner &FrameDriver::presentation() const {
   return presentation_;
 }
 
-std::string FrameDriver::armWarp(Core &core, const char *line) {
-  return warp_.arm(line, core);
-}
-
-FrameDriver &FrameDriver::from(Core &core) {
-  if (!core.game || !core.game->frameDriver) {
-    lucent::error("ctr-frame", "guest override has no Core with a bound CTR frame driver");
-    std::abort();
-  }
-  auto *driver = dynamic_cast<FrameDriver *>(core.game->frameDriver.get());
-  if (!driver) {
-    lucent::error("ctr-frame", "guest override reached a frame driver this title does not own");
-    std::abort();
-  }
-  return *driver;
+std::string FrameDriver::armWarp(Core &core, const psx::debug::CommandArgs &args) {
+  return warp_.arm(args, core);
 }
 
 void FrameDriver::onStartupGpuVSync(Core *core) {
@@ -204,23 +191,23 @@ void FrameDriver::onShutdownVSync(Core *core) {
 }
 
 void FrameDriver::onBootResourceWait(Core *core) {
-  from(*core).resourceLoad_.begin(*core);
+  core->game->frameDriverAs<FrameDriver>().resourceLoad_.begin(*core);
 }
 
 void FrameDriver::onBootResourcePump(Core *core) {
-  from(*core).resourcePump_.begin(*core);
+  core->game->frameDriverAs<FrameDriver>().resourcePump_.begin(*core);
 }
 
 void FrameDriver::onStartupAudioService(Core *core) {
-  from(*core).startupAudio_.service(*core);
+  core->game->frameDriverAs<FrameDriver>().startupAudio_.service(*core);
 }
 
 void FrameDriver::onDmaCallbackRegistration(Core *core) {
-  from(*core).spuDmaRegistration_.service(*core);
+  core->game->frameDriverAs<FrameDriver>().spuDmaRegistration_.service(*core);
 }
 
 void FrameDriver::onFrameTiming(Core *core) {
-  FrameDriver &driver = from(*core);
+  FrameDriver &driver = core->game->frameDriverAs<FrameDriver>();
   if (core->r[31] == native::kFrameTimingReturn) {
     driver.frameSuffix_.completeFieldTiming(*core);
     return;
@@ -233,7 +220,7 @@ void FrameDriver::onFrameTiming(Core *core) {
 }
 
 void FrameDriver::onProjectionProducer(Core *core) {
-  from(*core).publishMeasuredProjection(*core);
+  core->game->frameDriverAs<FrameDriver>().publishMeasuredProjection(*core);
 }
 
 void FrameDriver::publishMeasuredProjection(Core &core) {

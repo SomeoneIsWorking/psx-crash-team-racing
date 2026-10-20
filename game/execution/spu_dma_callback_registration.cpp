@@ -9,7 +9,7 @@ namespace ctr {
 
 void SpuDmaCallbackRegistration::service(Core &core) const {
   guest::callOriginalToReturn(core, native::kDmaCallback, "CTR DMACallback");
-  core.game->dmaCallbacks.exchange(DmaChannel::Spu, core.mem_r32(native::kSpuDmaCallbackSlot));
+  core.game->dmaCallbacks.exchange(psx::dma::DmaChannel::Spu, core.mem_r32(native::kSpuDmaCallbackSlot));
 }
 
 } // namespace ctr
