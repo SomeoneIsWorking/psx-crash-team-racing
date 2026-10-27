@@ -44,6 +44,7 @@ add_library(
   game/boot/startup_audio_wait.cpp
   game/boot/startup_resource_load.cpp
   game/boot/startup_resource_pump.cpp
+  game/debug/debug_menu.cpp
   game/debug/level_warp.cpp
   game/disc/async_disc_owner.cpp
   game/disc/overlay_image_owner.cpp

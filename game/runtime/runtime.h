@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug/debug_menu.h"
 #include "game_runtime.h"
 #include "guest_widescreen_projection.h"
 #include "stock_libcd.h"
@@ -7,7 +8,6 @@
 #include "stock_vsync.h"
 
 #include <cstdint>
-#include <cstdio>
 #include <memory>
 
 class Core;
@@ -29,8 +29,9 @@ public:
   bool sealedFrameIsCut(Core &core) const override;
   // The base nullptr would resolve every plan to 4:3.
   const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;
-  // `warp <level-hex>`.
-  bool titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) override;
+  const psx::game::TitleDebugMenu &debugMenu() const override {
+    return debugMenu_;
+  }
 
   [[nodiscard]] const psx::cd::StockLibcd &libcd() const {
     return libcd_;
@@ -46,6 +47,7 @@ private:
   // and state zero waits on it at 0x8003C94C.
   psx::cd::GuestInterruptLibcd libcd_;
   psx::present::GuestWidescreenProjection widescreen_;
+  DebugMenu debugMenu_;
 };
 
 } // namespace ctr
