@@ -1,6 +1,5 @@
 #include "disc/async_disc_owner.h"
 
-#include "cd_drive_timing.h"
 #include "core.h"
 #include "execution/guest_turns.h"
 #include "game.h"
@@ -13,10 +12,7 @@
 
 namespace ctr {
 
-void DiscReadOwner::noteTransferComplete(Core &core,
-                                         std::optional<CompletedDiscRead> read,
-                                         uint32_t sectors,
-                                         uint8_t mode) {
+void DiscReadOwner::noteTransferComplete(Core &core, std::optional<CompletedDiscRead> read) {
   if (pending_) {
     // One drive cannot have two transfers in flight; the read leaf delivers the previous one first.
     lucent::error("ctr-disc", "a second native CdRead completed with the previous completion still owed");
@@ -36,11 +32,12 @@ void DiscReadOwner::noteTransferComplete(Core &core,
     return;
   }
   pending_ = true;
-  dueTicks_ = core.game->timing.emulatedCpuTicks() + uint64_t{sectors} * psx::cd::driveSectorPeriodCpuTicks(mode);
+  issuerStack_ = core.r[29];
 }
 
 void DiscReadOwner::deliverIfDue(Core &core) {
-  if (pending_ && core.game->timing.emulatedCpuTicks() >= dueTicks_) {
+  // The stack has risen past the frame that called CdRead: the loader returned and published its state.
+  if (pending_ && core.r[29] > issuerStack_) {
     deliverPending(core);
   }
 }
@@ -79,7 +76,7 @@ void readWithCompletionCallback(Core *core) {
     lucent::error("ctr-disc", "native CdRead failed; the retail completion callback cannot be delivered");
     std::abort();
   }
-  completion.noteTransferComplete(*core, read, read.sectors, static_cast<uint8_t>(read.mode));
+  completion.noteTransferComplete(*core, read);
 }
 
 } // namespace ctr

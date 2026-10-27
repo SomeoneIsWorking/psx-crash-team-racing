@@ -23,7 +23,7 @@ Title hops only. Each row is where CTR joins a psxport feature hop (`psxport F-X
 | hop | joins | owner |
 |---|---|---|
 | 1 | psxport F-CD.1 | `game/runtime/runtime.cpp:Runtime` — stock `CdReadSync` `0x800770AC`, ready slot `0x8008C420` delivered by the guest's INT1 with status 1 |
-| 2 | psxport F-CD.1 | `game/disc/async_disc_owner.cpp:readWithCompletionCallback` — `CdRead` `0x80076F10`: the stock transfer, then the completion callback `[0x8008AD10]` owed at the drive's read time |
+| 2 | psxport F-CD.1 | `game/disc/async_disc_owner.cpp:readWithCompletionCallback` — `CdRead` `0x80076F10`: the stock transfer, then the completion callback `[0x8008AD10]` owed until the loader that called it returns |
 | 3 | psxport F-CD.1 | `game/runtime/runtime.cpp:Runtime` — stock `CD_cw` `0x8007BC38`; `game/execution/platform_leaves.cpp:cdSync` — `0x8007B6F0` |
 | 4 | psxport F-CD.3 | `game/disc/overlay_image_owner.cpp:OverlayImageOwner` — BIGFILE entries published as image generations after their callback |
 

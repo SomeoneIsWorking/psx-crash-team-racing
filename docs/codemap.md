@@ -44,7 +44,7 @@ psxport's Lightrec executor.
 | `StartupAudioWait` | `game/boot/startup_audio_wait.*` | The post-archive XA wait on `0x8008D708`, one audio field per service call |
 | `ctr::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): `warp <level-hex>` over `LevelWarp` |
 | `LevelWarp` | `game/debug/level_warp.*` | The `warp <level-hex>` request: armed during a race with no load pending, applied at the next field start through the guest's own level-load request `0x8003CFC0`; reached from `DebugMenu` through `FrameDriver::armWarp` |
-| `DiscReadOwner`, `readWithCompletionCallback` | `game/disc/async_disc_owner.*` | The title's `CdRead`: the stock synchronous transfer, then the libcd completion callback owed once the drive's read time has passed |
+| `DiscReadOwner`, `readWithCompletionCallback` | `game/disc/async_disc_owner.*` | The title's `CdRead`: the stock synchronous transfer, then the libcd completion callback owed until the loader that called `CdRead` returns |
 | `OverlayImageOwner` | `game/disc/overlay_image_owner.*` | An exact BIGFILE entry read as an image candidate, published after the retail callback relocates it |
 | `ProjectionOwner` | `game/video/projection_owner.*` | The pre-GTE publication `0x80042910`: capture the view, compare the retail libgte state, apply the plan |
 | `WidescreenOwner` | `game/video/widescreen_owner.*` | The widening plan, resolved once from the extent the guest's own publication carried |

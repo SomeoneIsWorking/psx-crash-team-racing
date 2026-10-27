@@ -13,16 +13,13 @@ namespace ctr {
 // psxport transfers synchronously, so that completion is owed until the issuing call unwinds.
 class DiscReadOwner final {
 public:
-  // `sectors` at CdRead `mode` set how long the drive owes before the completion may interrupt mid-field.
-  void noteTransferComplete(Core &core,
-                            std::optional<CompletedDiscRead> read = std::nullopt,
-                            uint32_t sectors = 0,
-                            uint8_t mode = 0x80u);
+  // Called from the CdRead leaf: the completion is owed from here until the calling loader returns.
+  void noteTransferComplete(Core &core, std::optional<CompletedDiscRead> read = std::nullopt);
 
   void deliverPending(Core &core);
 
-  // Mid-field delivery for a guest that polls for its completion: the drive's read time must have elapsed,
-  // so the loader that issued the read has published its state first.
+  // Mid-field delivery for a guest that polls for its completion, once the loader that called CdRead has
+  // returned, so it has published its state first. Disc reads take no drive time.
   void deliverIfDue(Core &core);
 
   [[nodiscard]] bool hasPendingCompletion() const {
@@ -38,7 +35,7 @@ public:
 private:
   OverlayImageOwner overlayImages_;
   bool pending_ = false;
-  uint64_t dueTicks_ = 0;
+  uint32_t issuerStack_ = 0; // guest sp inside the function that called CdRead
   uint32_t deliveredCallbacks_ = 0;
   uint32_t polledReads_ = 0;
 };
