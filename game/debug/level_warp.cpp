@@ -16,20 +16,9 @@ bool LevelWarp::legal(Core &core) {
          core.mem_r32(core.r[28] + native::kLoadRequestGpOffset) == native::kNoLoadRequest;
 }
 
-std::string LevelWarp::arm(const psx::debug::CommandArgs &args, Core &core) {
-  const std::optional<uint32_t> parsed = args.hex(1);
-  if (!parsed || args.size() != 2) {
-    return "usage: warp <level-hex>";
-  }
-  if (*parsed > native::kLastRaceTrackLevel) {
-    return lucent::format(
-        "refused: level 0x{:X} is past the last race track 0x{:X}", *parsed, native::kLastRaceTrackLevel);
-  }
-  if (!legal(core)) {
-    return "refused: a warp is legal only during a race with no load pending";
-  }
-  armed_ = parsed;
-  return lucent::format("ok: warp armed for level 0x{:X}", *parsed);
+std::string LevelWarp::arm(uint32_t level) {
+  armed_ = level;
+  return lucent::format("ok: warp armed for level 0x{:X}", level);
 }
 
 std::optional<uint32_t> LevelWarp::apply(Core &core) {

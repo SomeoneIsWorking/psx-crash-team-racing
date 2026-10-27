@@ -174,8 +174,8 @@ const PresentationOwner &FrameDriver::presentation() const {
   return presentation_;
 }
 
-std::string FrameDriver::armWarp(Core &core, const psx::debug::CommandArgs &args) {
-  return warp_.arm(args, core);
+std::string FrameDriver::armWarp(uint32_t level) {
+  return warp_.arm(level);
 }
 
 void FrameDriver::onStartupGpuVSync(Core *core) {
