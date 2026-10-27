@@ -20,6 +20,18 @@ The completion is owed until the loader that called `CdRead` has returned: `note
 guest stack pointer at the `CdRead` call, and the next budget exit with the stack above it delivers the callback.
 The drive-time wait is gone.
 
+## What the loader publishes
+Every read that carries a completion callback is issued by the load-queue pump `FUN_80032dc0`: it calls
+`FUN_800321b4` (type 1) or `FUN_80031e00`/`FUN_80031fdc` (types 2 and 3, which call `FUN_800321b4`), stores the
+return into the current entry's pointer word `0x80083A48` and then decrements the queue count `gp+0x136`. The
+callback `FUN_80032110` hands `&0x80083A3C` (that entry) to the entry's own callback (`gp+0x8F0`, `FUN_80032d8c` for
+type 1). So "published" is the store to `0x80083A48` after the loader returns. The stack test stands for it because
+that store is the pump's next instruction after the call; it would deliver one block early if a budget exit fell
+between the return and the store, and it falls back to the field boundary if a loader polled inside its own frame.
+Neither has been seen. Comparing `0x80083A48` against the returned pointer would be exact for type 1 only, since
+types 2 and 3 store their own return values. (Ghidra pipeline audit flagged its pre-script record for this CTR
+project; the bodies above match the disassembly at the cited call sites.)
+
 ## Shown
 Same run after the fix (`scratch/player-bugs-3/r4`, 3000 fences unpaced): no field longer than 30 ms after boot
 (the remaining 59 ms at fence 446 is the renderer start, not a read); callback 30 is still delivered in the same
