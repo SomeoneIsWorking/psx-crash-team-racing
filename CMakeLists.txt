@@ -61,11 +61,10 @@ add_library(
   game/runtime/runtime.cpp
   game/runtime/session.cpp
   game/video/presentation_owner.cpp
-  game/video/geometry_projection_owner.cpp
   game/video/projection_owner.cpp
   game/video/scene_cut.cpp
   game/video/widescreen_owner.cpp
-  game/video/view_projection_plan.cpp
+  game/video/view_frustum_owner.cpp
 )
 target_include_directories(ctr_game PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/game" "${CMAKE_CURRENT_BINARY_DIR}")
 target_compile_features(ctr_game PUBLIC cxx_std_20)

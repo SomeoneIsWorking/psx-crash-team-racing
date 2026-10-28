@@ -38,7 +38,7 @@ Title hops only. Each row is where CTR joins a psxport feature hop (`psxport F-X
 | hop | joins | owner |
 |---|---|---|
 | 1 | psxport F-WIDE.1 | `game/video/widescreen_owner.cpp:WidescreenOwner::planFor` — the plan from the guest's own view extent |
-| 2 | psxport F-WIDE.1 | `game/video/projection_owner.cpp:ProjectionOwner::publish` — `0x80042910` widened after the retail comparison |
-| 3 | psxport F-WIDE.1 | `game/video/geometry_projection_owner.cpp:GeometryProjectionOwner::observe` — `H` widened at the GTE perspective op |
+| 2 | psxport F-WIDE.1 | `game/video/projection_owner.cpp:ProjectionOwner::publish` — `0x80042910` resolves the plan after the retail comparison; `H` stays retail |
+| 3 | psxport F-WIDE.1 | `game/video/view_frustum_owner.cpp:ViewFrustumOwner::build` — `0x800430F0` builds a full-width view's frustum at the projection width |
 
-Race widescreen (view frustum, HUD anchors) is parked, issue 0038.
+Margin quads rejected at the screen edge: issue 0042. HUD anchors are parked, issue 0038.

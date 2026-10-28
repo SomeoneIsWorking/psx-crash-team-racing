@@ -11,10 +11,6 @@
 namespace ctr {
 namespace {
 
-constexpr uint32_t kScreenDistanceOffset = 0x18u;
-constexpr uint32_t kWidthOffset = 0x20u;
-constexpr uint32_t kHeightOffset = 0x22u;
-
 int32_t signedHalf(uint16_t value) {
   return static_cast<int16_t>(value) / 2;
 }
@@ -33,11 +29,11 @@ void ProjectionOwner::publish(Core &core, const RetailBody &retailBody, Source s
 
   ProjectionPublication next{
       .source = core.r[4],
-      .nativeWidth = static_cast<int16_t>(core.mem_r16(core.r[4] + kWidthOffset)),
-      .nativeHeight = static_cast<int16_t>(core.mem_r16(core.r[4] + kHeightOffset)),
-      .centerX = signedHalf(core.mem_r16(core.r[4] + kWidthOffset)),
-      .centerY = signedHalf(core.mem_r16(core.r[4] + kHeightOffset)),
-      .screenDistance = core.mem_r32(core.r[4] + kScreenDistanceOffset),
+      .nativeWidth = static_cast<int16_t>(core.mem_r16(core.r[4] + native::kViewRectWidthOffset)),
+      .nativeHeight = static_cast<int16_t>(core.mem_r16(core.r[4] + native::kViewRectHeightOffset)),
+      .centerX = signedHalf(core.mem_r16(core.r[4] + native::kViewRectWidthOffset)),
+      .centerY = signedHalf(core.mem_r16(core.r[4] + native::kViewRectHeightOffset)),
+      .screenDistance = core.mem_r32(core.r[4] + native::kViewScreenDistanceOffset),
       .sequence = current_.sequence + 1u,
   };
 
@@ -61,48 +57,18 @@ void ProjectionOwner::publish(Core &core, const RetailBody &retailBody, Source s
 
   previous_ = current_;
   current_ = next;
-  // A fixed `latchPlan` wins over the callback.
   if (planSource_ && !planLatched_) {
-    const psx::present::GuestProjectionPlan resolved =
-        planSource_(core,
-                    GuestViewProjection{.width = next.nativeWidth,
-                                        .height = next.nativeHeight,
-                                        .distance = static_cast<int32_t>(next.screenDistance)});
-    plan_ = resolved;
-    // H scales by the plan's widening factor so the extra field is rendered, not stretched.
-    distanceScaleNumerator_ = resolved.projectionExtent.width;
-    distanceScaleDenominator_ = resolved.nativeProjectionExtent.width;
+    // The guest's own H stands: the margins are drawn by widening the cull and the canvas, not by scaling H.
+    plan_ = planSource_(core,
+                        GuestViewProjection{.width = next.nativeWidth,
+                                            .height = next.nativeHeight,
+                                            .distance = static_cast<int32_t>(next.screenDistance)});
     planLatched_ = true;
   }
-  applyPresentationPlan(core, next);
 }
 
 void ProjectionOwner::setPlanSource(PlanSource source) {
   planSource_ = std::move(source);
-}
-
-void ProjectionOwner::latchPlan(const psx::present::GuestProjectionPlan &plan,
-                                int32_t distanceScaleNumerator,
-                                int32_t distanceScaleDenominator) {
-  if (distanceScaleNumerator <= 0 || distanceScaleDenominator <= 0) {
-    lucent::error("ctr-projection",
-                  "projection scale {}/{} is not a positive ratio",
-                  distanceScaleNumerator,
-                  distanceScaleDenominator);
-    std::abort();
-  }
-  plan_ = plan;
-  distanceScaleNumerator_ = distanceScaleNumerator;
-  distanceScaleDenominator_ = distanceScaleDenominator;
-  planLatched_ = true;
-}
-
-const GteProjection &ProjectionOwner::publishedProjection() const {
-  return published_;
-}
-
-bool ProjectionOwner::widenedLastPublication() const {
-  return widened_;
 }
 
 uint32_t ProjectionOwner::sourceReturnAddress(Source source) {
@@ -123,49 +89,6 @@ const ProjectionPublication &ProjectionOwner::previous() const {
 
 const ProjectionPublication &ProjectionOwner::current() const {
   return current_;
-}
-
-void ProjectionOwner::applyPresentationPlan(Core &core, const ProjectionPublication &retail) {
-  published_ = GteProjection{
-      .centerX = retail.centerX,
-      .centerY = retail.centerY,
-      .distance = static_cast<int32_t>(retail.screenDistance),
-  };
-  widened_ = false;
-  if (!planLatched_) {
-    return;
-  }
-  const WidenedViewProjection widened =
-      widenViewProjection(GuestViewProjection{.width = retail.nativeWidth,
-                                              .height = retail.nativeHeight,
-                                              .distance = static_cast<int32_t>(retail.screenDistance)},
-                          plan_,
-                          distanceScaleNumerator_,
-                          distanceScaleDenominator_);
-  if (!widened.widened) {
-    return;
-  }
-  // A plan narrower than the guest's own view would squash the picture; compare against this publication's view.
-  if (plan_.projectionExtent.width <= retail.nativeWidth) {
-    lucent::warn("ctr-projection",
-                 "plan REFUSED: its projection extent {} is not wider than the guest's own view width "
-                 "{}. Publishing it would narrow the picture, not widen it, so retail's triple "
-                 "({}) stands.",
-                 plan_.projectionExtent.width,
-                 retail.nativeWidth,
-                 native::kStartupLiteralPublication);
-    published_ = GteProjection{
-        .centerX = retail.centerX,
-        .centerY = retail.centerY,
-        .distance = static_cast<int32_t>(retail.screenDistance),
-    };
-    return;
-  }
-  // Host state only; the guest's view descriptor keeps its retail values.
-  psx::gte::setGeomOffset(core, widened.published.centerX, widened.published.centerY);
-  psx::gte::setGeomScreen(core, widened.published.distance);
-  published_ = widened.published;
-  widened_ = true;
 }
 
 } // namespace ctr

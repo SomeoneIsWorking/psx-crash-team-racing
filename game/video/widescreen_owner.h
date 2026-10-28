@@ -11,8 +11,8 @@ namespace ctr {
 
 class ProjectionOwner;
 
-// Widening reaches H (GTE CR26), not the extent alone, because sx = H*X/Z + OFX; four
-// `cfc2 rX,$26` sites derive 2H, 4H and H/2, so the guest's viewport math moves with it.
+// The widening plan: the guest keeps its H and centre, the canvas gains a margin each side and the cull
+// (`ViewFrustumOwner`) widens to match, so the extra field is rendered, not zoomed.
 class WidescreenOwner final {
 public:
   struct LatchResult {
@@ -32,8 +32,6 @@ public:
 
 private:
   psx::present::GuestProjectionPlan plan_{};
-  int32_t distanceScaleNumerator_ = 1;
-  int32_t distanceScaleDenominator_ = 1;
   bool latched_ = false;
 };
 
