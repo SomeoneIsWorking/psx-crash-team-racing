@@ -9,6 +9,8 @@ Product path: `run.sh` → `tools/run.py` (provision, build) → the framework m
 (`admitExecutable` default, `registerOverrides`) → `ctr::FrameDriver::stepFrame` once per display field on
 psxport's Lightrec executor.
 
+Frame loop: not owned. Each step dispatches main-loop state 3 `0x8003C58C` for one field and resumes the continuation at the guest's VSync (issue 0041).
+
 ## Placement rules
 
 - Everything is in namespace `ctr`, with `ctr::native` for measured addresses, `ctr::identity` for the generated
