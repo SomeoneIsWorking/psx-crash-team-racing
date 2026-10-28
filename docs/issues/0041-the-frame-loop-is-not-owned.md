@@ -10,3 +10,4 @@ The workspace rule (psxport `docs/workspace/WORKSPACE.md`, "Each title owns its 
 
 ## What blocks it
 The state-3 body is run as guest code up to its waits; the per-frame update and draw it calls are not split out of `0x8003C58C`. Next: decompile `0x8003C58C`'s state-3 arm and drive its update/draw pair natively.
+The converted driver counts `Timing::vsyncFields` of the loop's own n at the replaced wait (psxport `docs/presentation.md`, Frame fence and pacing), so an overrunning frame keeps its VBlanks, audio and fields on the guest clock's grid; it is done in that conversion, not as a separate step on the current one-field answer.
