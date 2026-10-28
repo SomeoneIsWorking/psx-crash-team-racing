@@ -34,8 +34,6 @@ psx::present::GuestProjectionPlan WidescreenOwner::planFor(Core &core, const Gue
                                          });
   if (!plan_.nativeProjectionExtent.width) {
     plan_ = plan;
-    distanceScaleNumerator_ = plan.projectionExtent.width;
-    distanceScaleDenominator_ = plan.nativeProjectionExtent.width;
     latched_ = true;
     report(view);
   }
@@ -47,7 +45,7 @@ void WidescreenOwner::report(const GuestViewProjection &view) const {
                "CTR widescreen owner resolved from the GUEST'S OWN published view ({}x{}, the view "
                "descriptor's own +0x20/+0x22): aspect={} native presentation {}x{} -> presentation "
                "{}x{} (margin {}px), native projection {}x{} -> projection {}x{} (margin {}px, centre "
-               "X {}), H scale {}/{}, guest draw width {} -> {}. {}",
+               "X {}), guest draw width {} -> {}. {}",
                view.width,
                view.height,
                aspectName(plan_.aspect),
@@ -62,12 +60,9 @@ void WidescreenOwner::report(const GuestViewProjection &view) const {
                plan_.projectionExtent.height,
                plan_.projectionHorizontalMargin,
                plan_.projectionCenterX,
-               distanceScaleNumerator_,
-               distanceScaleDenominator_,
                plan_.nativeGuestDrawWidth,
                plan_.guestDrawWidth,
-               plan_.widescreen() ? "This plan WIDENS the projection."
-                                  : "This plan does NOT widen: the published triple is retail's own.");
+               plan_.widescreen() ? "This plan WIDENS the projection." : "This plan does NOT widen.");
 }
 
 bool WidescreenOwner::latched() const {

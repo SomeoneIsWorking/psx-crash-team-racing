@@ -48,10 +48,10 @@ Frame loop: not owned. Each step dispatches main-loop state 3 `0x8003C58C` for o
 | `LevelWarp` | `game/debug/level_warp.*` | The `warp <level-hex>` request: armed during a race with no load pending, applied at the next field start through the guest's own level-load request `0x8003CFC0`; reached from `DebugMenu` through `FrameDriver::armWarp` |
 | `DiscReadOwner`, `readWithCompletionCallback` | `game/disc/async_disc_owner.*` | The title's `CdRead`: the stock synchronous transfer, then the libcd completion callback owed until the loader that called `CdRead` returns |
 | `OverlayImageOwner` | `game/disc/overlay_image_owner.*` | An exact BIGFILE entry read as an image candidate, published after the retail callback relocates it |
-| `ProjectionOwner` | `game/video/projection_owner.*` | The pre-GTE publication `0x80042910`: capture the view, compare the retail libgte state, apply the plan |
+| `ProjectionOwner` | `game/video/projection_owner.*` | The pre-GTE publication `0x80042910`: capture the view, compare the retail libgte state, resolve the plan; the guest keeps its own `H` |
 | `WidescreenOwner` | `game/video/widescreen_owner.*` | The widening plan, resolved once from the extent the guest's own publication carried |
-| `GeometryProjectionOwner` | `game/video/geometry_projection_owner.*` | The same plan applied at the GTE perspective op, armed for exactly one field through `core.rsub.gtePreOp` |
-| `widenViewProjection` | `game/video/view_projection_plan.*` | The pure widening rule over a guest view |
+| `ViewFrustumOwner` | `game/video/view_frustum_owner.*` | The cull frustum `0x800430F0` of a full-width view built at the plan's projection width, so the margins keep their geometry |
+| `GuestViewProjection` | `game/video/view_projection_plan.h` | The view facts the publication carries (width, height, `H`) |
 | `PresentationOwner` | `game/video/presentation_owner.*` | The one `presentation.commit` per field; samples `SceneCut` first |
 | `SceneCut` | `game/video/scene_cut.*` | Main-loop state `[gp+0x188]`, level id and loading bit of the tracker `[gp+0x340]`, and whether they changed since the last commit |
 | facts | `game/title/native_ownership.h` | Every measured guest address and game-state offset; facts only |
@@ -62,7 +62,7 @@ Frame loop: not owned. Each step dispatches main-loop state 3 `0x8003C58C` for o
 | Hop | Owner |
 |---|---|
 | product spine | `ProductHost` → `TitleSession`: `admitExecutable` → `registerOverrides` → `startProgram` (default) |
-| field entry | `FrameDriver::stepFrame`: `ScopedGteProjectionObservation`, `FieldOverrideScope`, `FieldBoundary::beginField` |
+| field entry | `FrameDriver::stepFrame`: `FieldOverrideScope`, `FieldBoundary::beginField` |
 | host work | `Timing::frameTick`, `FrameCallbackOwner::deliverField`, `Pad::serviceFrame`, `SpuAudio::frame`, `DiscReadOwner::deliverPending` |
 | owed continuation | `FrameSuffix` → `StartupAudioWait` → `StartupResourcePump` → `StartupResourceLoad`, one at a time |
 | debug warp | `LevelWarp::apply` before the loop resumes, when no continuation is owed |

@@ -11,9 +11,9 @@
 #include "frame/frame_callback_owner.h"
 #include "frame/frame_suffix.h"
 #include "game_runtime.h"
-#include "video/geometry_projection_owner.h"
 #include "video/presentation_owner.h"
 #include "video/projection_owner.h"
+#include "video/view_frustum_owner.h"
 #include "video/widescreen_owner.h"
 
 #include <cstdint>
@@ -52,6 +52,7 @@ private:
   static void onShutdownVSync(Core *core);
   static void onFrameTiming(Core *core);
   static void onProjectionProducer(Core *core);
+  static void onViewFrustumBuild(Core *core);
   static void onDmaCallbackRegistration(Core *core);
 
   // `dispatchField` is the only place a budget exit may be resumed as the same field.
@@ -64,7 +65,7 @@ private:
   DiscReadOwner &discReadOwner_;
   FrameCallbackOwner frameCallbacks_;
   ProjectionOwner projection_;
-  GeometryProjectionOwner geometryProjection_;
+  ViewFrustumOwner viewFrustum_;
   WidescreenOwner widescreen_;
   PresentationOwner presentation_;
   FieldBoundary field_;

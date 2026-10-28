@@ -1,5 +1,6 @@
 #pragma once
 
+#include "guest_widescreen_projection.h"
 #include "video/view_projection_plan.h"
 
 #include <cstdint>
@@ -24,7 +25,7 @@ struct ProjectionPublication {
 };
 
 // Captures the view input of the retail projection publication, refuses if the published libgte
-// state disagrees, then applies the latched plan to GTE control registers only.
+// state disagrees, then resolves the widening plan once from that view.
 class ProjectionOwner final {
 public:
   using RetailBody = std::function<void(Core &)>;
@@ -47,43 +48,17 @@ public:
   using PlanSource = std::function<psx::present::GuestProjectionPlan(Core &, const GuestViewProjection &)>;
   void setPlanSource(PlanSource source);
 
-  // A fixed plan overrides any plan source.
-  void latchPlan(const psx::present::GuestProjectionPlan &plan,
-                 int32_t distanceScaleNumerator,
-                 int32_t distanceScaleDenominator);
-
-  // What the last publication actually put in the GTE: retail when no plan is latched or the
-  // plan does not widen.
-  [[nodiscard]] const GteProjection &publishedProjection() const;
-  [[nodiscard]] bool widenedLastPublication() const;
-
-  // Read-only for `GeometryProjectionOwner`, so the plan has one home.
-  [[nodiscard]] bool planLatched() const {
-    return planLatched_;
-  }
+  // Read by `ViewFrustumOwner`, so the plan has one home.
   [[nodiscard]] const psx::present::GuestProjectionPlan &plan() const {
     return plan_;
   }
-  [[nodiscard]] int32_t distanceScaleNumerator() const {
-    return distanceScaleNumerator_;
-  }
-  [[nodiscard]] int32_t distanceScaleDenominator() const {
-    return distanceScaleDenominator_;
-  }
 
 private:
-  // Runs only after the retail comparison passed.
-  void applyPresentationPlan(Core &core, const ProjectionPublication &retail);
-
   ProjectionPublication previous_{};
   ProjectionPublication current_{};
   psx::present::GuestProjectionPlan plan_{};
-  int32_t distanceScaleNumerator_ = 1;
-  int32_t distanceScaleDenominator_ = 1;
   bool planLatched_ = false;
   PlanSource planSource_{};
-  GteProjection published_{};
-  bool widened_ = false;
 };
 
 } // namespace ctr

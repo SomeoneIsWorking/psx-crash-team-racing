@@ -43,16 +43,12 @@ void FrameDriver::stepFrame(Core &core, uint32_t frame) {
   }
   lastFrame_ = frame;
   budgetExitsThisField_ = 0;
-  // Armed for the same window as the address overrides, since guest GTE ops only run inside a field.
-  const ScopedGteProjectionObservation geometryObservation(core, geometryProjection_);
   // The widening plan is resolved from the guest's own published view in ProjectionOwner::publish.
   projection_.setPlanSource([this](Core &projectionCore, const GuestViewProjection &view) {
     return widescreen_.planFor(projectionCore, view);
   });
-  // Rebound every field so a null owner is refused instead of silently widening nothing.
-  geometryProjection_.setProjectionOwner(&projection_);
 
-  const std::array<FieldOverrideBinding, 9> fieldOverrides{{
+  const std::array<FieldOverrideBinding, 10> fieldOverrides{{
       {native::kStartupGpuInit, "startup GPU VSync owner", onStartupGpuVSync},
       {native::kStartupDisplayInit, "startup display VSync owner", onStartupDisplayVSync},
       {native::kBootResourceWait, "boot resource wait owner", onBootResourceWait},
@@ -61,6 +57,7 @@ void FrameDriver::stepFrame(Core &core, uint32_t frame) {
       {native::kShutdownDisplay, "shutdown VSync owner", onShutdownVSync},
       {native::kFrameTiming, "frame timing owner", onFrameTiming},
       {native::kProjectionProducer, "projection owner", onProjectionProducer},
+      {native::kViewFrustumBuild, "view frustum owner", onViewFrustumBuild},
       {native::kDmaCallback, "DMA callback registration owner", onDmaCallbackRegistration},
   }};
   const FieldOverrideScope overrides(core, fieldOverrides);
@@ -221,6 +218,16 @@ void FrameDriver::onFrameTiming(Core *core) {
 
 void FrameDriver::onProjectionProducer(Core *core) {
   core->game->frameDriverAs<FrameDriver>().publishMeasuredProjection(*core);
+}
+
+void FrameDriver::onViewFrustumBuild(Core *core) {
+  FrameDriver &driver = core->game->frameDriverAs<FrameDriver>();
+  driver.viewFrustum_.build(
+      *core,
+      [](Core &frustumCore) {
+        guest::callOriginalToReturn(frustumCore, native::kViewFrustumBuild, "CTR view frustum builder");
+      },
+      driver.projection_.plan());
 }
 
 void FrameDriver::publishMeasuredProjection(Core &core) {
