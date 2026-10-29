@@ -11,8 +11,8 @@ namespace ctr {
 
 class ProjectionOwner;
 
-// The widening plan: the guest keeps its H and centre, the canvas gains a margin each side and the cull
-// (`ViewFrustumOwner`) widens to match, so the extra field is rendered, not zoomed.
+// The widening plan: the guest keeps its H and centre and the canvas gains a margin each side, so the extra
+// field is rendered, not zoomed; the cull stays retail's (issue 0045).
 class WidescreenOwner final {
 public:
   struct LatchResult {
@@ -20,7 +20,8 @@ public:
     psx::present::GuestProjectionPlan plan{};
   };
 
-  psx::present::GuestProjectionPlan planFor(Core &core, const GuestViewProjection &view);
+  // Latches the canvas plan from the guest's first published view.
+  void latchPlan(Core &core, const GuestViewProjection &view);
 
   // Resolved on the first publication, not at boot.
   [[nodiscard]] bool latched() const;

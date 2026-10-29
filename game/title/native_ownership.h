@@ -92,11 +92,8 @@ inline constexpr uint32_t kProjectionReturnState = 0x8003BD34u;
 inline constexpr uint32_t kProjectionReturnOverlay = 0x8003F5C8u;
 // The view (push buffer, stride 0x110 from game-state +0x168): screen distance H and the viewport rect extent.
 inline constexpr uint32_t kViewScreenDistanceOffset = 0x18u;
-inline constexpr uint32_t kViewRectXOffset = 0x1Cu;
 inline constexpr uint32_t kViewRectWidthOffset = 0x20u;
 inline constexpr uint32_t kViewRectHeightOffset = 0x22u;
-// Builds the view's cull frustum from the rect's half extents at H.
-inline constexpr uint32_t kViewFrustumBuild = 0x800430F0u;
 
 inline constexpr uint32_t kVSync = 0x80075350u;
 inline constexpr uint32_t kVSyncEnd = 0x80075560u;

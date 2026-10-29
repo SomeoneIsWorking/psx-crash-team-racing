@@ -16,7 +16,7 @@ namespace {
 // never a constant.
 } // namespace
 
-psx::present::GuestProjectionPlan WidescreenOwner::planFor(Core &core, const GuestViewProjection &view) {
+void WidescreenOwner::latchPlan(Core &core, const GuestViewProjection &view) {
   if (!view.valid()) {
     lucent::error("wide",
                   "CTR widescreen cannot widen an unusable guest view: {}x{} H={}",
@@ -37,7 +37,6 @@ psx::present::GuestProjectionPlan WidescreenOwner::planFor(Core &core, const Gue
     latched_ = true;
     report(view);
   }
-  return plan;
 }
 
 void WidescreenOwner::report(const GuestViewProjection &view) const {

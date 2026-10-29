@@ -50,7 +50,6 @@ Frame loop: not owned. Each step dispatches main-loop state 3 `0x8003C58C` for o
 | `OverlayImageOwner` | `game/disc/overlay_image_owner.*` | An exact BIGFILE entry read as an image candidate, published after the retail callback relocates it |
 | `ProjectionOwner` | `game/video/projection_owner.*` | The pre-GTE publication `0x80042910`: capture the view, compare the retail libgte state, resolve the plan; the guest keeps its own `H` |
 | `WidescreenOwner` | `game/video/widescreen_owner.*` | The widening plan, resolved once from the extent the guest's own publication carried |
-| `ViewFrustumOwner` | `game/video/view_frustum_owner.*` | The cull frustum `0x800430F0` of a full-width view built at the plan's projection width, so the margins keep their geometry |
 | `GuestViewProjection` | `game/video/view_projection_plan.h` | The view facts the publication carries (width, height, `H`) |
 | `PresentationOwner` | `game/video/presentation_owner.*` | The one `presentation.commit` per field; samples `SceneCut` first |
 | `SceneCut` | `game/video/scene_cut.*` | Main-loop state `[gp+0x188]`, level id and loading bit of the tracker `[gp+0x340]`, and whether they changed since the last commit |

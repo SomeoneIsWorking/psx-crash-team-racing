@@ -58,11 +58,11 @@ void ProjectionOwner::publish(Core &core, const RetailBody &retailBody, Source s
   previous_ = current_;
   current_ = next;
   if (planSource_ && !planLatched_) {
-    // The guest's own H stands: the margins are drawn by widening the cull and the canvas, not by scaling H.
-    plan_ = planSource_(core,
-                        GuestViewProjection{.width = next.nativeWidth,
-                                            .height = next.nativeHeight,
-                                            .distance = static_cast<int32_t>(next.screenDistance)});
+    // The guest's own H stands: the margins are drawn by widening the canvas, not by scaling H.
+    planSource_(core,
+                GuestViewProjection{.width = next.nativeWidth,
+                                    .height = next.nativeHeight,
+                                    .distance = static_cast<int32_t>(next.screenDistance)});
     planLatched_ = true;
   }
 }
