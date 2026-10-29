@@ -1,6 +1,5 @@
 #pragma once
 
-#include "guest_widescreen_projection.h"
 #include "video/view_projection_plan.h"
 
 #include <cstdint>
@@ -45,18 +44,12 @@ public:
 
   // The plan is derived from the guest's own view on every publication: the boot display mode is not
   // the projected extent (512 wide, OFX = width/2).
-  using PlanSource = std::function<psx::present::GuestProjectionPlan(Core &, const GuestViewProjection &)>;
+  using PlanSource = std::function<void(Core &, const GuestViewProjection &)>;
   void setPlanSource(PlanSource source);
-
-  // Read by `ViewFrustumOwner`, so the plan has one home.
-  [[nodiscard]] const psx::present::GuestProjectionPlan &plan() const {
-    return plan_;
-  }
 
 private:
   ProjectionPublication previous_{};
   ProjectionPublication current_{};
-  psx::present::GuestProjectionPlan plan_{};
   bool planLatched_ = false;
   PlanSource planSource_{};
 };

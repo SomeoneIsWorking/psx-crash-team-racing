@@ -102,7 +102,7 @@ translation workflow.
   view offsets `+0x20/+0x22/+0x18` and is called at `0x80024CCC`, `0x8003BD2C`, and
   `0x8003F5C0`. Ghidra independently identified `[0x80024C4C,0x80025138)` as a lens-flare
   primitive producer and `0x80025138` as its callback registrar.
-- where: `game/runtime/runtime.cpp` (`StockLibgte`), `game/video/projection_owner.*`, `game/video/view_frustum_owner.*`,
+- where: `game/runtime/runtime.cpp` (`StockLibgte`), `game/video/projection_owner.*`,
   and the recorded binary evidence in this entry
 - gap: Follow the view object to simulation-owned camera/transforms, and attribute the 2D layers
   that bound the drawn band (see below). The ten geometry submitters are attributed; their packet-build
@@ -112,8 +112,10 @@ translation workflow.
 - notes: 2026-10-29. `0x800430F0` builds the view's cull frustum from the corners (rect `+0x20`/2,
   rect `+0x22`*16/9/2) at `H`, rotated by the view matrix into scratchpad `0x1F800000`; ModSDK names it
   `PushBuffer_UpdateFrustum`. Scaling `H` by 684/512 zoomed the 16:9 picture (same horizontal field, less
-  vertical) and changed the race clock; `H` now stays retail and the frustum is built at 684. Quads in the
-  outer margin are still rejected per quad (issue 0042); the four `H` readers above are the first suspects.
+  vertical) and changed the race clock; `H` now stays retail. Building the frustum at 684 also changed the race: the
+  16:9 race clock started one game frame (32/960 s) early and the karts diverged, so the cull stays retail's
+  (issue 0045). Quads in the outer margin are still rejected per quad (issue 0042); the four `H` readers above are the
+  first suspects.
 - notes: **EXTENDED 2026-09-28.** The `H` census on the identity-verified image is complete:
   **18 writers** (16 raw `ctc2 rX,$26` words plus 2
   `jal SetGeomScreen` calls) and **4 readers** (`cfc2 rX,$26` at 0x8006A6B8, 0x80070AF8, 0x80070EE8,
