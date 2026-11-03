@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">CTR: Crash Team Racing port icon</title>
+  <desc id="description">A chequered flag waving over orange speed lines.</desc>
+  <defs>
+    <linearGradient id="backdrop" x1="64" y1="32" x2="448" y2="480" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1d3c8f"/>
+      <stop offset="1" stop-color="#08143a"/>
+    </linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".42"/>
+    </filter>
+  </defs>
+
+  <rect x="20" y="20" width="472" height="472" rx="106" fill="url(#backdrop)"/>
+  <rect x="35" y="35" width="442" height="442" rx="91" fill="none" stroke="#ffb43c" stroke-width="6" opacity=".75"/>
+
+  <g filter="url(#shadow)" stroke-linejoin="round">
+    <g stroke="#ffb43c" stroke-width="14" stroke-linecap="round">
+      <path d="M92 330h96"/><path d="M112 370h120"/><path d="M92 410h76"/>
+    </g>
+    <path d="M196 96v320" stroke="#e8e8e8" stroke-width="16" stroke-linecap="round"/>
+    <path d="M204 112c60-26 120 26 200-6v172c-80 32-140-20-200 6Z" fill="#fff" stroke="#08143a" stroke-width="10"/>
+    <g fill="#14161c">
+      <path d="M204 112c20-8 40-8 50-6v58c-12-2-30-2-50 6Z"/>
+      <path d="M304 120c20 8 34 12 50 10v58c-16 2-30-2-50-10Z"/>
+      <path d="M254 164c18 2 34 8 50 14v58c-16-6-32-12-50-14Z"/>
+      <path d="M354 188c18 0 34-4 50-10v58c-16 6-32 10-50 10Z"/>
+      <path d="M204 228c20-8 36-8 50-6v56c-14-2-30-2-50 6Z"/>
+    </g>
+  </g>
+</svg>

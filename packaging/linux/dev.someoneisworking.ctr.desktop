@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=CTR: Crash Team Racing
+GenericName=Racing game
+Comment=PC-native port of CTR: Crash Team Racing
+Icon=dev.someoneisworking.ctr
+Terminal=false
+Categories=Game;SportsGame;
+Keywords=Crash;CTR;Racing;Kart;PlayStation;Port;
+StartupNotify=true
