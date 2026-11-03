@@ -44,8 +44,8 @@ Frame loop: not owned. Each step dispatches main-loop state 3 `0x8003C58C` for o
 | `StartupResourceLoad` | `game/boot/startup_resource_load.*` | The −1 branch of `0x80031FDC`: retail setup and commit, the field its omitted `VSync(2)` owed, the caller it resumes |
 | `StartupResourcePump` | `game/boot/startup_resource_pump.*` | The two `0x8002DD24` poll loops, one host field per false poll |
 | `StartupAudioWait` | `game/boot/startup_audio_wait.*` | The post-archive XA wait on `0x8008D708`, one audio field per service call |
-| `ctr::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): `warp <level-hex>` over `LevelWarp` |
-| `LevelWarp` | `game/debug/level_warp.*` | The `warp <level-hex>` request: armed during a race with no load pending, applied at the next field start through the guest's own level-load request `0x8003CFC0`; reached from `DebugMenu` through `FrameDriver::armWarp` |
+| `ctr::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): the warp catalogue (`track 0xNN`) over `LevelWarp` |
+| `LevelWarp` | `game/debug/level_warp.*` | The track arrival: armed during a race with no load pending, applied at the next field start through the guest's own level-load request `0x8003CFC0`; reached from `DebugMenu` through `FrameDriver::armWarp` |
 | `DiscReadOwner`, `readWithCompletionCallback` | `game/disc/async_disc_owner.*` | The title's `CdRead`: the stock synchronous transfer, then the libcd completion callback owed until the loader that called `CdRead` returns |
 | `OverlayImageOwner` | `game/disc/overlay_image_owner.*` | An exact BIGFILE entry read as an image candidate, published after the retail callback relocates it |
 | `ProjectionOwner` | `game/video/projection_owner.*` | The pre-GTE publication `0x80042910`: capture the view, compare the retail libgte state, resolve the plan; the guest keeps its own `H` |

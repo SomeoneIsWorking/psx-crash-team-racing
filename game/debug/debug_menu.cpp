@@ -6,19 +6,28 @@
 #include "game.h"
 #include "title/native_ownership.h"
 
+#include <lucent/log.h>
+
+#include <vector>
+
 namespace ctr {
 
 DebugMenu::DebugMenu() {
-  using psx::game::DebugCall;
-  using psx::game::DebugParam;
-  section("Track Warp");
-  verb({
-      .name = "warp",
-      .summary = "Load that race track",
-      .params = {DebugParam::hex("level", 0, native::kLastRaceTrackLevel)},
-      .run =
-          [](const DebugCall &call) {
-            call.reply = call.core.game->frameDriverAs<FrameDriver>().armWarp(call.values.u32(0));
+  warp({
+      .levels = {"track"},
+      .places =
+          [](Core &) {
+            std::vector<psx::game::WarpPlace> tracks;
+            for (std::uint32_t level = 0; level <= native::kLastRaceTrackLevel; ++level) {
+              tracks.push_back({
+                  .name = lucent::format("track 0x{:02X}", level),
+                  .arrive =
+                      [level](Core &core) {
+                        return core.game->frameDriverAs<FrameDriver>().armWarp(level);
+                      },
+              });
+            }
+            return tracks;
           },
       .refusal =
           [](Core &core) {
