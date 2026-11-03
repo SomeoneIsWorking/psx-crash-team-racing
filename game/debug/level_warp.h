@@ -8,7 +8,7 @@ class Core;
 
 namespace ctr {
 
-// The debug menu's `warp <level-hex>` request: armed between fields while a race runs, applied at the next field start
+// A track arrival of the warp catalogue: armed between fields while a race runs, applied at the next field start
 // through the guest's own level-load request, which main-loop state 3 consumes through its loader.
 class LevelWarp {
 public:

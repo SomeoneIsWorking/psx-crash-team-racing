@@ -38,7 +38,7 @@ public:
   [[nodiscard]] const WidescreenOwner &widescreen() const;
   [[nodiscard]] const PresentationOwner &presentation() const;
 
-  // Arms a `warp <level>` request; the next field raises it through the guest's own level-load request.
+  // Arms a track arrival; the next field raises it through the guest's own level-load request.
   std::string armWarp(uint32_t level);
 
 private:
