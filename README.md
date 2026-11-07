@@ -61,3 +61,5 @@ use its `PSXPORT_LIGHTREC_DIR` and `PSXPORT_LIGHTNING_PREFIX` configuration.
 Hosted Linux x86-64 runs this same command without game files. The Windows, Apple Silicon, and
 Android execution/packaging gaps are recorded in `docs/project-state.md`; the current CI run does
 not qualify those hosts or prove real-title gameplay.
+
+Built with AI assistance (Claude and other LLMs).
