@@ -58,26 +58,23 @@ Constraints and non-goals:
 
 ## G003 — Interpolated presentation at 60 fps and above
 
-Present CTR smoothly between its original simulation ticks by retaining consecutive game-owned
-camera and object transforms and interpolating them only for native rendering. Simulation rate,
-gameplay logic, collision, and guest memory remain faithful to the original tick sequence.
+Present CTR at 60 fps while its logic keeps the original 30 Hz tick, so physics, AI and timing are the
+retail game's. The in-betweens come from replay interpolation (user skill `replay-interpolation`, psxport
+`ReplayFrame`): the race's own draw section re-run in the sandbox with its moving inputs blended between two
+ticks.
 
 Success conditions:
 
-- The native frame driver retains authoritative previous/current simulation snapshots and computes
-  presentation transforms from an explicit interpolation alpha.
-- Camera, world geometry, objects, and effects that require temporal continuity move smoothly at
-  presentation rates above the original simulation rate without changing simulation outcomes.
-- Interpolation-disabled output remains the faithful baseline, and alpha endpoints reproduce the
-  corresponding simulation snapshots exactly.
+- Each in-between is the title's draw section replayed at its fraction, visibly halfway between its
+  neighbours on the defect's screen; the t = 1 replay equals the real frame.
+- The same input sequence with fps60 on and off reaches identical logic state.
+- A paced real-time run shows about 0.5 tick per vblank at 60 Hz.
 
 Constraints and non-goals:
 
-- Quantized GTE results, ordering-table output, and composed guest matrices are not interpolation
-  sources.
-- Frame duplication, guest re-execution under a modified camera, and simulation-rate patches do not
-  satisfy interpolation.
-- This goal depends on PC ownership of the transforms and native renderer that consume them.
+- A 60 Hz logic rate (CTR-ModSDK's `USE_60FPS`, which halves rates site by site) is a non-goal: it changes
+  the original physics.
+- Per-object producers, matrix searches and image-space motion estimation do not satisfy interpolation.
 
 ## G004 — Reproducible evidence and player setup
 
