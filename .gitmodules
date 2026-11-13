@@ -1,0 +1,3 @@
+[submodule "external/ctr-native"]
+	path = external/ctr-native
+	url = https://github.com/CTR-tools/ctr-native.git
