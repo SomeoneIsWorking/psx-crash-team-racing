@@ -51,6 +51,14 @@ std::unique_ptr<psx::game::FrameDriver> Runtime::createFrameDriver(Game &game) {
   return std::make_unique<FrameDriver>(game);
 }
 
+std::optional<double> Runtime::presentDeadline(Core &core, psx::frame::FieldCadence cadence) {
+  return core.game->framePacer.presentedFieldsDeadline(core, cadence);
+}
+
+psx::present::ReplayFrame *Runtime::replayFrame(Core &core) {
+  return &session(core).drawReplay.frame();
+}
+
 bool Runtime::sealedFrameIsCut(Core &core) const {
   return session(core).sceneCut.isCut();
 }

@@ -8,8 +8,8 @@ namespace ctr {
 
 class FieldBoundary;
 
-// State zero's post-archive XA wait on the task at 0x8008D708: serves the retail service call,
-// yields one host field per call and resumes at the retail poll.
+// State zero's post-archive XA wait on the task at 0x8008D708: serves the retail service call and
+// yields one host field per call; the frame driver resumes the field at the retail poll.
 class StartupAudioWait final {
 public:
   StartupAudioWait(FieldBoundary &field);
@@ -18,7 +18,8 @@ public:
 
   void service(Core &core);
 
-  void resume(Core &core);
+  // The retail poll the next field resumes at; the wait no longer owns it.
+  [[nodiscard]] uint32_t takeContinuation();
 
 private:
   FieldBoundary &field_;

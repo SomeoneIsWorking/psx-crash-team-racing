@@ -66,6 +66,28 @@ inline constexpr uint32_t kFrameTimingReturn = 0x8003785Cu;
 inline constexpr uint32_t kFrameTimingQueryReturn = 0x8004B438u;
 inline constexpr uint32_t kFrameSuffix = 0x80037880u;
 inline constexpr uint32_t kFrameLoopResume = 0x8003CEB4u;
+// MainFrame_RenderFrame's picture half ends at the frame-timing call; its arguments are [gp+0x340], [gp+0x344].
+inline constexpr uint32_t kFrameDrawEnd = 0x80037854u;
+// RenderFrame's memory-card poll: the test of gameMode1 & (ADVENTURE_ARENA | END_OF_RACE | MAIN_MENU) and its jal
+// RefreshCard_Entry 0x80047D64, which polls card events and draws nothing.
+inline constexpr uint32_t kFrameCardPoll = 0x800377A4u;
+inline constexpr uint32_t kFrameCardPollEnd = 0x800377C8u;
+inline constexpr uint32_t kGameTrackerPointer = 0x8008D2ACu;
+inline constexpr uint32_t kGamepadsPointer = 0x8008D2B0u;
+// The game tracker is static; sdata->gGT names it.
+inline constexpr uint32_t kGameTracker = 0x80096B20u;
+// pushBuffer[0].ptrOT; DrawOTag gets its last entry (ClearOTagR order).
+inline constexpr uint32_t kTrackerOrderingTableOffset = 0x25Cu;
+inline constexpr uint32_t kOrderingTableHeadOffset = 0xFFCu;
+// pushBuffer[4] (stride 0x110): pos and rot, from which RainLogic's PushBuffer_UpdateFrustum builds the view.
+inline constexpr uint32_t kTrackerPushBufferOffset = 0x168u;
+inline constexpr uint32_t kPushBufferStride = 0x110u;
+inline constexpr uint32_t kPushBufferCount = 4u;
+// JitPools.instance: taken list first +0xC, maxItems +0x18, itemSize +0x1C, ptrPoolData +0x24.
+inline constexpr uint32_t kTrackerInstancePoolOffset = 0x18F8u;
+// drivers[8].
+inline constexpr uint32_t kTrackerDriversOffset = 0x24ECu;
+inline constexpr uint32_t kDriverCount = 8u;
 // The suffix waits on the DrawSync callback byte and the VSync callback's two-field countdown.
 inline constexpr uint32_t kDrawSyncCallbackSlot = 0x8008AD8Cu;
 inline constexpr uint32_t kGameStateGpOffset = 832u;

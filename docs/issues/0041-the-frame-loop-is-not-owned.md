@@ -1,6 +1,6 @@
 # 0041 — The frame loop is not owned
 
-Status: open (2026-10-28). Owner: `game/frame/frame_driver.cpp:FrameDriver::stepFrame`.
+Status: fixed (2026-11-14). Owner: `game/frame/frame_driver.cpp:FrameDriver::stepFrame`.
 
 ## What the code does
 Each step dispatches main-loop state 3 `0x8003C58C` (`kGuestMain`) for one field and resumes the owed continuation at the guest's next VSync or budget exit (`dispatchField`).
@@ -11,3 +11,10 @@ The workspace rule (psxport `docs/workspace/WORKSPACE.md`, "Each title owns its 
 ## What blocks it
 The state-3 body is run as guest code up to its waits; the per-frame update and draw it calls are not split out of `0x8003C58C`. Next: decompile `0x8003C58C`'s state-3 arm and drive its update/draw pair natively.
 The converted driver counts `Timing::vsyncFields` of the loop's own n at the replaced wait (psxport `docs/presentation.md`, Frame fence and pacing), so an overrunning frame keeps its VBlanks, audio and fields on the guest clock's grid; it is done in that conversion, not as a separate step on the current one-field answer.
+
+## Fix
+`FrameDriver::stepFrame` runs one state-3 frame per step: `kFrameLoopResume` to RenderFrame's entry, then the draw to
+the frame-timing call, whose override only requests the boundary. `finishStep` delivers fields from host context
+while the suffix waits (the VSync ISR cannot run inside an override), each field the guest clock reached
+(`Timing::vsyncFields`) with its VBlank callback, then runs the suffix and its DrawOTag, and commits the step's fields.
+The Crash Cove replay: 3306 steps, 5799 of 5827 vblanks at 0.5 tick, one stall.

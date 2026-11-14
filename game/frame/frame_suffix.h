@@ -6,8 +6,6 @@ class Core;
 
 namespace ctr {
 
-class FieldBoundary;
-
 // The three guest words the retail frame suffix at 0x80037880 waits on.
 struct FrameSuffixWait {
   // Zero means none is published, which is not a pending draw.
@@ -20,22 +18,20 @@ struct FrameSuffixWait {
 
 [[nodiscard]] bool frameSuffixStillWaiting(const FrameSuffixWait &wait);
 
-// The per-field frame-timing bridge and the retail suffix that closes the field.
+// The frame-timing bridge and the retail suffix that closes the frame. Its wait is the frame driver's: the driver
+// delivers fields while `waiting`, then `finish` runs the suffix through DrawOTag back to the main loop.
 class FrameSuffix final {
 public:
-  FrameSuffix(FieldBoundary &field);
-
   [[nodiscard]] bool isPending() const;
 
   // The timing leaf's conditional debug VSync(0) is omitted.
   void completeFieldTiming(Core &core);
-
-  void resume(Core &core);
+  [[nodiscard]] bool waiting(Core &core) const;
+  void finish(Core &core);
 
 private:
   [[nodiscard]] FrameSuffixWait readWaitState(Core &core) const;
 
-  FieldBoundary &field_;
   bool pending_ = false;
 };
 

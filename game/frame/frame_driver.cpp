@@ -4,6 +4,7 @@
 #include "execution/guest_turns.h"
 #include "execution_control.h"
 #include "execution_exit.h"
+#include "field_rate.h"
 #include "frame/field_override_scope.h"
 #include "frame/retail_return.h"
 #include "frame/vsync_bridge.h"
@@ -14,6 +15,7 @@
 #include <array>
 #include <cstdlib>
 #include <lucent/log.h>
+#include <utility>
 
 namespace ctr {
 namespace {
@@ -30,7 +32,7 @@ constexpr VsyncBridge kShutdownVSyncBridge{
 
 FrameDriver::FrameDriver(Game &game)
     : discReadOwner_(session(game.core).discRead), presentation_(session(game.core).sceneCut), field_(presentation_),
-      resourceLoad_(field_), resourcePump_(field_), startupAudio_(field_), frameSuffix_(field_) {}
+      resourceLoad_(field_), resourcePump_(field_), startupAudio_(field_) {}
 
 void FrameDriver::stepFrame(Core &core, uint32_t frame) {
   if (!core.game) {
@@ -65,22 +67,21 @@ void FrameDriver::stepFrame(Core &core, uint32_t frame) {
   core.game->timing.logicFrame = frame;
   core.rsub.otAttr.beginLogicFrame(frame);
   core.game->timing.frameTick();
-  frameCallbacks_.deliverField(core);
-  core.game->pad.serviceFrame();
-  // XA playback is pull-driven; state zero waits on the clip task at 0x8008D708.
-  core.game->spu_audio.frame();
   // Retail delivers this from the CD interrupt, and the loader stores its buffer only after the read returns.
   discReadOwner_.deliverPending(core);
 
+  std::optional<psx::cpu::ExecutionResult> execution;
   if (!field_.pending(core)) {
-    resumeOwedContinuation(core);
+    execution = resumeOwedContinuation(core);
   }
-  if (field_.pending(core)) {
-    field_.finishField(core, frame);
+  if (field_.pending(core) || (execution && execution->reason == psx::cpu::ExecutionExitReason::FrameBoundary)) {
+    finishStep(core);
     return;
   }
+  if (execution) {
+    refuseUnfinishedField(core, frame, execution);
+  }
 
-  std::optional<psx::cpu::ExecutionResult> execution;
   if (resourceLoad_.ownsSuffix()) {
     resourceLoad_.resume(core);
   } else if (!bootEntered_) {
@@ -88,10 +89,14 @@ void FrameDriver::stepFrame(Core &core, uint32_t frame) {
     execution = dispatchField(core, core.pc);
   } else {
     warp_.apply(core);
-    execution = dispatchField(core, native::kFrameLoopResume);
+    execution = dispatchField(core, native::kFrameLoopResume, native::kFrameOwner);
+    if (execution->reason == psx::cpu::ExecutionExitReason::GuestReturn) {
+      session(core).drawReplay.frame().beforeDraw(core);
+      execution = dispatchField(core, native::kFrameOwner);
+    }
   }
   if (field_.pending(core) || (execution && execution->reason == psx::cpu::ExecutionExitReason::FrameBoundary)) {
-    field_.finishField(core, frame);
+    finishStep(core);
     return;
   }
 
@@ -99,16 +104,66 @@ void FrameDriver::stepFrame(Core &core, uint32_t frame) {
 }
 
 // The continuation ladder; only one continuation can be owed at a time.
-void FrameDriver::resumeOwedContinuation(Core &core) {
-  if (frameSuffix_.isPending()) {
-    frameSuffix_.resume(core);
-  } else if (startupAudio_.ownsContinuation()) {
-    startupAudio_.resume(core);
-  } else if (resourcePump_.isActive()) {
+std::optional<psx::cpu::ExecutionResult> FrameDriver::resumeOwedContinuation(Core &core) {
+  if (startupAudio_.ownsContinuation()) {
+    return dispatchField(core, startupAudio_.takeContinuation());
+  }
+  if (resourcePump_.isActive()) {
     resourcePump_.resume(core);
   } else if (resourceLoad_.consumeWaitedField()) {
     field_.request(core);
   }
+  return std::nullopt;
+}
+
+void FrameDriver::deliverFields(Core &core) {
+  // A field's wait spans the field edges the guest clock already ran past.
+  const uint32_t fields = core.game->timing.vsyncFields(1u);
+  for (uint32_t field = 0; field < fields; ++field) {
+    if (!core.game->timing.advanceDisplayFields({1, 1},
+                                                psx::frame::fieldRateMilliHz(core.game->timing.displayFieldRate()))) {
+      lucent::error("ctr-frame", "the display clock refused a field");
+      std::abort();
+    }
+    // The VBlank callback the advance raised, and a DrawSync callback still owed.
+    frameCallbacks_.deliverField(core);
+    // libpad reads the pad each VBlank; XA playback is pull-driven (state zero waits on the clip task at 0x8008D708).
+    core.game->pad.serviceFrame();
+    core.game->spu_audio.frame();
+  }
+  stepFields_ += fields;
+}
+
+void FrameDriver::closeFrame(Core &core) {
+  // The suffix waits for the DrawSync callback and the VBlank callback's two-field countdown [gp+0x348].
+  while (frameSuffix_.waiting(core)) {
+    if (stepFields_ >= kMaxFrameFields) {
+      const uint32_t state = core.mem_r32(core.r[28] + native::kGameStateGpOffset);
+      lucent::error("ctr-frame",
+                    "the frame suffix still waits after {} fields (countdown {}, DrawSync pending {}, pc 0x{:08X})",
+                    stepFields_,
+                    static_cast<int32_t>(core.mem_r32(core.r[28] + native::kFrameWaitFieldsGpOffset)),
+                    core.mem_r8(state + native::kDrawSyncPendingOffset),
+                    core.pc);
+      std::abort();
+    }
+    deliverFields(core);
+  }
+  frameSuffix_.finish(core);
+  // DrawOTag's draw completed synchronously, so its DrawSync callback is owed before the next frame runs.
+  frameCallbacks_.deliverField(core);
+}
+
+void FrameDriver::finishStep(Core &core) {
+  if (frameSuffix_.isPending()) {
+    (void)core.executionControl().consume(core.pc, 0);
+    closeFrame(core);
+  }
+  // A step that ended without the suffix's wait (boot, a load) yields one field on the guest clock.
+  if (stepFields_ == 0u) {
+    deliverFields(core);
+  }
+  field_.finishField(core, std::exchange(stepFields_, 0u));
 }
 
 void FrameDriver::refuseUnfinishedField(Core &core,
@@ -127,8 +182,11 @@ void FrameDriver::refuseUnfinishedField(Core &core,
   std::abort();
 }
 
-psx::cpu::ExecutionResult FrameDriver::dispatchField(Core &core, uint32_t entry) {
-  auto result = guest::dispatch(core, entry);
+psx::cpu::ExecutionResult FrameDriver::dispatchField(Core &core, uint32_t entry, std::optional<uint32_t> stop) {
+  const auto run = [&](uint32_t pc) {
+    return stop ? guest::dispatchHop(core, pc, *stop) : guest::dispatch(core, pc);
+  };
+  auto result = run(entry);
   while (result.reason == psx::cpu::ExecutionExitReason::BudgetExhausted) {
     // A field has no return boundary: a budget exit that consumed cycles is the same
     // field, one that consumed none made no progress and is refused.
@@ -145,7 +203,7 @@ psx::cpu::ExecutionResult FrameDriver::dispatchField(Core &core, uint32_t entry)
     ++budgetExitsThisField_;
     // Retail raises the CD interrupt asynchronously; a guest polling for it never reaches a field start.
     discReadOwner_.deliverIfDue(core);
-    result = guest::dispatch(core, result.guestPc);
+    result = run(result.guestPc);
   }
   return result;
 }
@@ -206,6 +264,8 @@ void FrameDriver::onFrameTiming(Core *core) {
   FrameDriver &driver = core->game->frameDriverAs<FrameDriver>();
   if (core->r[31] == native::kFrameTimingReturn) {
     driver.frameSuffix_.completeFieldTiming(*core);
+    // The suffix's wait takes interrupts, which no override can: the driver closes the frame once the turn ends.
+    driver.field_.request(*core);
     return;
   }
   if (core->r[31] == native::kFrameTimingQueryReturn) {

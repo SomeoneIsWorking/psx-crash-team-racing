@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <lucent/log.h>
+#include <utility>
 
 namespace ctr {
 
@@ -34,10 +35,8 @@ void StartupAudioWait::service(Core &core) {
   field_.request(core);
 }
 
-void StartupAudioWait::resume(Core &core) {
-  const uint32_t continuation = continuationAddress_;
-  continuationAddress_ = 0;
-  guest::propagateFrameBoundary(core, guest::dispatch(core, continuation), "CTR startup-audio continuation");
+uint32_t StartupAudioWait::takeContinuation() {
+  return std::exchange(continuationAddress_, 0u);
 }
 
 } // namespace ctr

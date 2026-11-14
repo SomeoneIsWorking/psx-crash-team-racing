@@ -4,7 +4,6 @@
 #include "execution/guest_turns.h"
 #include "execution_exit.h"
 #include "execution_services.h"
-#include "frame/field_boundary.h"
 #include "frame/retail_return.h"
 #include "title/native_ownership.h"
 
@@ -41,8 +40,6 @@ bool frameSuffixStillWaiting(const FrameSuffixWait &wait) {
   return (wait.drawSyncPending || wait.vblankFieldsPending) && wait.registeredCallbacks < kRegisteredCallbackWaitLimit;
 }
 
-FrameSuffix::FrameSuffix(FieldBoundary &field) : field_(field) {}
-
 bool FrameSuffix::isPending() const {
   return pending_;
 }
@@ -67,26 +64,23 @@ void FrameSuffix::completeFieldTiming(Core &core) {
     core.r[31] = native::kFrameSuffix;
     core.r[4] = kDebugVSyncMode;
   }
-
   pending_ = true;
-  resume(core);
 }
 
-void FrameSuffix::resume(Core &core) {
+bool FrameSuffix::waiting(Core &core) const {
+  return frameSuffixStillWaiting(readWaitState(core));
+}
+
+void FrameSuffix::finish(Core &core) {
   if (!pending_) {
-    lucent::error("ctr-frame", "frame suffix resumed without an owned continuation");
+    lucent::error("ctr-frame", "frame suffix finished without an owned continuation");
     std::abort();
-  }
-  if (frameSuffixStillWaiting(readWaitState(core))) {
-    field_.request(core);
-    return;
   }
   guest::callToContinuation(core, native::kFrameSuffix, native::kFrameLoopResume, "CTR frame suffix");
   if (core.r[31] != native::kFrameLoopResume) {
     refuseUnexpectedRetailReturn("frame suffix", native::kFrameLoopResume, core.r[31]);
   }
   pending_ = false;
-  field_.request(core);
 }
 
 FrameSuffixWait FrameSuffix::readWaitState(Core &core) const {

@@ -8,12 +8,12 @@ namespace ctr {
 
 class SceneCut;
 
-// Owns the framework presentation fence at each host field; the record path seals and presents every field.
+// Owns the framework presentation fence at each frame-driver step; the record path seals and presents each.
 class PresentationOwner final {
 public:
   explicit PresentationOwner(SceneCut &sceneCut);
 
-  void finishField(Core &core);
+  void finishField(Core &core, uint32_t fields);
 
   [[nodiscard]] uint64_t completedFences() const;
 

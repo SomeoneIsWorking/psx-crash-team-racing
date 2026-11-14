@@ -1,6 +1,7 @@
 #pragma once
 
 #include "disc/async_disc_owner.h"
+#include "frame/draw_replay.h"
 #include "game_runtime.h"
 #include "video/scene_cut.h"
 
@@ -15,6 +16,8 @@ public:
   SceneCut sceneCut;
   // The CD read completion the title's CdRead owes the guest.
   DiscReadOwner discRead;
+  // The 60 fps in-betweens, sampled at each RenderFrame entry.
+  DrawReplay drawReplay;
 };
 
 // The session of the Game `core` belongs to; aborts when it has none.

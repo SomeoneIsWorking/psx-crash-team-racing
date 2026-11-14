@@ -24,7 +24,8 @@ class Game;
 
 namespace ctr {
 
-// Owns one CTR state-3 frame at a time and picks the continuation owed for the field it enters. The first field
+// Owns one CTR state-3 frame per step (the suffix's DrawOTag, then the next frame's logic and draw to its wait) and
+// picks the continuation owed when it enters. The first field
 // enters the executable at the PC the admitted header set.
 class FrameDriver final : public psx::game::FrameDriver {
 public:
@@ -53,10 +54,19 @@ private:
   static void onProjectionProducer(Core *core);
   static void onDmaCallbackRegistration(Core *core);
 
-  // `dispatchField` is the only place a budget exit may be resumed as the same field.
-  void resumeOwedContinuation(Core &core);
+  // `dispatchField` is the only place a budget exit may be resumed as the same field; with `stop` it also ends where
+  // execution reaches that address (RenderFrame's entry, where the draw replay samples).
+  // The owed continuation; a guest turn it ran is the field's.
+  std::optional<psx::cpu::ExecutionResult> resumeOwedContinuation(Core &core);
+  // The frame driver's display field: the clock's advance with its VBlank and DrawSync callbacks, the pad and the SPU.
+  void deliverFields(Core &core);
+  // RenderFrame reached its suffix: fields until the suffix's wait holds no more, then the suffix and its DrawOTag.
+  void closeFrame(Core &core);
+  // Commits the fields the step delivered.
+  void finishStep(Core &core);
   void refuseUnfinishedField(Core &core, uint32_t frame, const std::optional<psx::cpu::ExecutionResult> &execution);
-  [[nodiscard]] psx::cpu::ExecutionResult dispatchField(Core &core, uint32_t entry);
+  [[nodiscard]] psx::cpu::ExecutionResult
+  dispatchField(Core &core, uint32_t entry, std::optional<uint32_t> stop = std::nullopt);
   void publishMeasuredProjection(Core &core);
   [[nodiscard]] static ProjectionOwner::Source classifyProjectionSource(uint32_t returnAddress);
 
@@ -73,6 +83,9 @@ private:
   FrameSuffix frameSuffix_;
   LevelWarp warp_;
   uint64_t budgetExitsThisField_ = 0;
+  static constexpr uint32_t kMaxFrameFields = 4u;
+  // The fields this step delivered.
+  uint32_t stepFields_ = 0;
   bool bootEntered_ = false;
   // The host loop's number for the previous field; the base is the loop's, consecutiveness is ours.
   std::optional<uint32_t> lastFrame_;

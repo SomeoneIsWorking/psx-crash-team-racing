@@ -21,7 +21,8 @@ public:
   // Refuses a pending typed exit that is not a frame boundary.
   [[nodiscard]] bool pending(Core &core) const;
 
-  void finishField(Core &core, uint32_t field);
+  // Commits the step's `fields` display fields.
+  void finishField(Core &core, uint32_t fields);
 
   [[nodiscard]] uint32_t completedFields() const;
 

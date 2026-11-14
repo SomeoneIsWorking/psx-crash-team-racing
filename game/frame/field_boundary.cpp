@@ -29,9 +29,9 @@ bool FieldBoundary::pending(Core &core) const {
   return requested_ || typed.has_value();
 }
 
-void FieldBoundary::finishField(Core &core, uint32_t field) {
+void FieldBoundary::finishField(Core &core, uint32_t fields) {
   (void)core.executionControl().consume(core.pc, 0);
-  presentation_.finishField(core);
+  presentation_.finishField(core, fields);
   ++completedFields_;
 }
 

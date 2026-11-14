@@ -51,6 +51,8 @@ add_library(
   game/execution/guest_turns.cpp
   game/execution/platform_leaves.cpp
   game/execution/spu_dma_callback_registration.cpp
+  game/frame/draw_replay.cpp
+  game/frame/draw_section.cpp
   game/frame/field_boundary.cpp
   game/frame/field_override_scope.cpp
   game/frame/frame_callback_owner.cpp

@@ -25,6 +25,12 @@ public:
   std::unique_ptr<psx::game::TitleSessionState> createSession(Game &game) override;
   std::unique_ptr<psx::game::FrameDriver> createFrameDriver(Game &game) override;
 
+  bool interpolates() const override {
+    return true;
+  }
+  psx::present::ReplayFrame *replayFrame(Core &core) override;
+  // The frame driver delivers each field itself (FrameDriver::deliverFields); the present only plans its deadline.
+  std::optional<double> presentDeadline(Core &core, psx::frame::FieldCadence cadence) override;
   // A change of main-loop state, level or loading bit between two committed fields.
   bool sealedFrameIsCut(Core &core) const override;
   // The base nullptr would resolve every plan to 4:3.
