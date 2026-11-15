@@ -79,5 +79,4 @@ psxport_add_product(
   LIBRARIES ctr_game
 )
 target_compile_features(ctr_port PRIVATE cxx_std_20)
-set_target_properties(ctr_port PROPERTIES ENABLE_EXPORTS ON)
 add_dependencies(ctr_port gen_gpu_shaders)
