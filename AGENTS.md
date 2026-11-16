@@ -1,34 +1,33 @@
 # Crash Team Racing port
 
-One native PC gameplay product: title-owned native subsystems plus psxport's pinned Lightrec executor
-for every remaining retail instruction. Product architecture and the ordered migration are in
+One native PC gameplay product: title-owned native subsystems plus psxport's per-`Core` interpreter
+(`GuestExecutor`) for every remaining retail instruction. Product architecture and the ordered migration are in
 `docs/migration.md`. Workspace: `../AGENTS.md`; framework contract: `external/psxport/AGENTS.md`.
 Execution policy: the `dynarec-port` and `dynarec-overrides` skills.
 
 ## Execution
 
 - The product maps the authenticated USA `SCUS_944.26` executable and `BIGFILE.BIG` overlay images
-  directly into a per-`Core` psxport-Lightrec executor. Activation of the measured `BIGFILE.BIG`
+  directly into psxport's per-`Core` interpreter (`GuestExecutor`). Activation of the measured `BIGFILE.BIG`
   runtime images is open.
-- Product link and selector checks prove there is no standalone interpreter mode; a missing host
-  backend is fatal.
+- Product link and selector checks prove there is no second engine or engine selector.
 - Native overrides are keyed by image/module generation plus guest address. Overlay replacement and
-  executable writes invalidate affected translated blocks before execution resumes.
+  executable writes invalidate affected dispatch decisions before execution resumes.
 - Preserve all existing title owners and measured addresses during the migration.
 
 ## Executor exits
 
 `game/frame/frame_driver.cpp` uses a typed psxport executor-exit request: the native callback records
-its exact title continuation/state and asks the executor to stop; Lightrec returns normally at a safe
-dispatcher boundary; `FrameDriver::stepFrame` handles the result, unwinds its scoped driver/override
+its exact title continuation/state and asks the executor to stop; the executor returns normally at the next
+block entry; `FrameDriver::stepFrame` handles the result, unwinds its scoped driver/override
 ownership, finishes one field/presentation fence, and updates counters. Unexpected normal return or
 an unrecognized exit is fatal. Never introduce exceptions, `longjmp`, or another host-stack escape
-through JIT frames.
+through a guest segment.
 
 ## Frontier
 
 Issue 0023: the GTE alternate-link chain executes and then faults on the already-corrupt pair at
-`0x8010B2D4`, with `lw v1,0x74(a2)` at `0x8006AB00`. The first Lightrec discriminator is to reach
+`0x8010B2D4`, with `lw v1,0x74(a2)` at `0x8006AB00`. The first executor discriminator is to reach
 that same boundary with current CD/DMA/frame/projection/presentation owners active. This wiring proof
 is not the representative-gameplay gate.
 

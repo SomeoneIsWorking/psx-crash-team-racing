@@ -2,8 +2,8 @@
 
 Native PC port of the North American Crash Team Racing release, built on
 [psxport](https://github.com/SomeoneIsWorking/psxport). The target product combines title-owned
-native subsystems with psxport's pinned Lightrec executor for every retail instruction that remains
-guest owned.
+native subsystems with psxport's per-`Core` interpreter (`GuestExecutor`) for every retail instruction
+that remains guest owned.
 
 ## Current evidence
 
@@ -24,15 +24,16 @@ not make that route the product or prove representative gameplay.
 
 ## Product and migration contract
 
-The target `run.sh` path provisions and validates the user-supplied disc, builds the native/Lightrec
-product, and launches it without offline guest-code emission. No product option selects an
-interpreter. Lightrec may use only its typed, measured, bounded refusal fallback before returning to
-dynarec dispatch; a separately built interpreter-only target may serve as a diagnostic oracle.
+The target `run.sh` path provisions and validates the user-supplied disc, builds the native/interpreter
+product, and launches it without offline guest-code emission. No product option selects an engine,
+and there is no recompiler or fallback tier; a separately built reference target may serve as a
+diagnostic oracle.
 
-The launcher now targets the native/Lightrec composition. The translator, corpus, static dispatcher,
+The launcher now targets the native/interpreter composition. The translator, corpus, static dispatcher,
 seed inputs, generated-symbol tests, and exception-based `FrameCompleted` control flow were removed
-before integration. Follow `docs/migration.md`: finish the per-`Core` executor, reproduce issue
-0023's frontier with nonzero Lightrec blocks, then continue to representative interactive gameplay.
+before integration. Follow `docs/migration.md`: finish the per-`Core` executor, reproduce issue 0023's
+frontier with nonzero executed guest blocks in the executor ledger, then continue to representative
+interactive gameplay.
 
 Media resolution remains explicit argument, CTR/generic environment or `.env`, then one
 unambiguous repository-root CHD. Incorrect or conflicting inputs refuse without replacing a valid
@@ -54,9 +55,7 @@ See `docs/project-state.md` for factual coverage, `docs/project-goals.md` for co
 
 There are no unit tests or gates. Build with `CC=clang CXX=clang++ uv run --frozen python
 external/psxport/tools/port/consumer_build.py --build build/agent --target ctr_port`.
-`external/psxport` is the workspace's live framework checkout. Lightrec
-and GNU Lightning are exact dependencies owned by that framework; custom checkout/prefix paths
-use its `PSXPORT_LIGHTREC_DIR` and `PSXPORT_LIGHTNING_PREFIX` configuration.
+`external/psxport` is the workspace's live framework checkout.
 
 Hosted Linux x86-64 runs this same command without game files. The Windows, Apple Silicon, and
 Android execution/packaging gaps are recorded in `docs/project-state.md`; the current CI run does

@@ -3,7 +3,7 @@
 #include "core.h"
 #include "execution_control.h"
 #include "guest_call.h"
-#include "lightrec_executor.h"
+#include "guest_executor.h"
 #include "native_dispatch.h"
 #include "resumable_guest_call.h"
 
@@ -23,7 +23,7 @@ uint32_t callToContinuation(Core &core, uint32_t address, uint32_t returnPc, std
 }
 
 psx::cpu::ExecutionResult dispatchHop(Core &core, uint32_t address, uint32_t returnPc) {
-  return core.lightrecExecutor().executeFunction(address, returnPc, psx::cpu::ExecutionBudget::currentTurn(core));
+  return core.executor().executeFunction(address, returnPc, psx::cpu::ExecutionBudget::currentTurn(core));
 }
 
 void callToReturn(Core &core, uint32_t address, std::string_view owner) {
