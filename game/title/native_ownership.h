@@ -49,6 +49,9 @@ inline constexpr uint32_t kStartupAudioService = 0x8001D06Cu;
 inline constexpr uint32_t kStartupAudioLoop = 0x8003C94Cu;
 inline constexpr uint32_t kStartupAudioServiceReturn = kStartupAudioLoop;
 inline constexpr uint32_t kStartupAudioWaitState = 0x8008D708u;
+// CDSYS_XAPauseRequest: a playing or starting XA clip fades out; the SPU IRQ callback finishes it and the service
+// call idles the task.
+inline constexpr uint32_t kXaPauseRequest = 0x8001CF98u;
 // libapi's DMA callback table; slot 4 (SPU) holds libspu's completion wrapper (0x8007AB34).
 inline constexpr uint32_t kDmaCallback = 0x8008044Cu;
 inline constexpr uint32_t kDmaCallbackTable = 0x8008CB08u;

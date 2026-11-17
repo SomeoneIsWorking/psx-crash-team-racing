@@ -8,8 +8,9 @@ namespace ctr {
 
 class FieldBoundary;
 
-// State zero's post-archive XA wait on the task at 0x8008D708: serves the retail service call and
-// yields one host field per call; the frame driver resumes the field at the retail poll.
+// State zero's post-archive XA wait on the task at 0x8008D708 (the "SCEA presents" voice clip): serves the retail
+// service call and yields one host field per call; the frame driver resumes the field at the retail poll. Start or
+// Cross ends the clip through the guest's own fade request.
 class StartupAudioWait final {
 public:
   StartupAudioWait(FieldBoundary &field);

@@ -4,6 +4,8 @@
 #include "execution/guest_turns.h"
 #include "execution_exit.h"
 #include "frame/field_boundary.h"
+#include "game.h"
+#include "host_input.h"
 #include "title/native_ownership.h"
 
 #include <cstdlib>
@@ -26,6 +28,11 @@ void StartupAudioWait::service(Core &core) {
   }
   if (core.mem_r32(native::kStartupAudioWaitState) == 0u) {
     return;
+  }
+  // The request is ignored unless the clip is starting or playing, so each press asks again.
+  if (core.game->pad.pressedButton(psx::input::kButtonStart | psx::input::kButtonCross)) {
+    guest::callToReturn(core, native::kXaPauseRequest, "CTR XA pause request");
+    lucent::info("ctr-boot", "Start/Cross fades out the startup voice clip");
   }
   if (ownsContinuation()) {
     lucent::error("ctr-frame", "nested state-zero audio waits are not supported");
