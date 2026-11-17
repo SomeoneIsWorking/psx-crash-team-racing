@@ -1,6 +1,7 @@
 #include "frame/draw_section.h"
 
 #include "core.h"
+#include "frame/ordering_table_head.h"
 #include "guest_redraw.h"
 #include "title/native_ownership.h"
 
@@ -17,8 +18,7 @@ std::optional<std::uint32_t> DrawSection::draw(Core &core, psx::present::GuestRe
   if (!redraw.dispatchTo(native::kFrameOwner, native::kFrameDrawEnd, arguments, skips)) {
     return std::nullopt;
   }
-  const std::uint32_t head =
-      core.mem_r32(tracker + native::kTrackerOrderingTableOffset) + native::kOrderingTableHeadOffset;
+  const std::uint32_t head = orderingTableHead(core, tracker);
   if (std::ranges::find(heads_, head) == heads_.end()) {
     heads_ = {heads_[1], head};
   }
