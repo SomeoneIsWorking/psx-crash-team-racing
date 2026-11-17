@@ -55,7 +55,7 @@ Frame loop: not owned. Each step dispatches main-loop state 3 `0x8003C58C` for o
 | `ProjectionOwner` | `game/video/projection_owner.*` | The pre-GTE publication `0x80042910`: capture the view, compare the retail libgte state, resolve the plan; the guest keeps its own `H` |
 | `RaceFlagDraw` | `game/video/race_flag_draw.*` | RaceFlag_DrawSelf `0x800444E8`, the checkered loading and menu flag: retail's grid, wave, colours and packets, its quad reject measured from the plan's left margin, and columns past retail's 35th while only a margin shows them; a quad retail would not draw is a host packet, so the pool and table hold retail's |
 | `LevelDrawMargins` | `game/video/level_draw_margins.*` | Overlay 226's `DrawLevelOvr1P`: retail's call, then the same call sandboxed with the view rect spanning both margins; the polygons only that run drew become host packets |
-| `HudAnchor` | `game/video/hud_anchor.*` | The race HUD's element drawers, each one's packets moved to the edge they sit on (psxport `anchorHudElement`) |
+| `HudAnchor` | `game/video/hud_anchor.*` | The race HUD's element drawers, each one's packets moved to the edge they sit on (psxport `anchorHudElement`); `RenderBucket_Execute`, the rank digit and wumpa fruit instances moved with their 2D element |
 | `WidescreenOwner` | `game/video/widescreen_owner.*` | The widening plan, resolved once from the extent the guest's own publication carried |
 | `GuestViewProjection` | `game/video/view_projection_plan.h` | The view facts the publication carries (width, height, `H`) |
 | `PresentationOwner` | `game/video/presentation_owner.*` | The one `presentation.commit` per field; samples `SceneCut` first |

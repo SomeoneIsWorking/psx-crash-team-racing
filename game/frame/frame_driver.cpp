@@ -12,7 +12,6 @@
 #include "game.h"
 #include "runtime/session.h"
 #include "title/native_ownership.h"
-#include "video/hud_anchor.h"
 
 #include <array>
 #include <cstdlib>
@@ -232,6 +231,10 @@ const WidescreenOwner &FrameDriver::widescreen() const {
 
 const PresentationOwner &FrameDriver::presentation() const {
   return presentation_;
+}
+
+HudAnchor &FrameDriver::hudAnchor() {
+  return hud_;
 }
 
 std::string FrameDriver::armWarp(uint32_t level) {

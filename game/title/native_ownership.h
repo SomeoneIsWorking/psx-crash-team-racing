@@ -203,9 +203,11 @@ inline constexpr uint32_t kUiMapDrawDrivers = 0x8004DD5Cu;
 inline constexpr uint32_t kUiMapDrawGhosts = 0x8004DEE8u;
 inline constexpr uint32_t kUiMapDrawTracking = 0x8004DFFCu;
 inline constexpr uint32_t kUiDrawRaceClock = 0x8004EDACu;
+inline constexpr uint32_t kUiDrawPosSuffix = 0x8005045Cu;
 inline constexpr uint32_t kUiDrawLapCount = 0x80050528u;
 inline constexpr uint32_t kUiWeaponDrawSelf = 0x800507E0u;
 inline constexpr uint32_t kUiWeaponDrawBg = 0x80050AF8u;
+inline constexpr uint32_t kUiDrawNumWumpa = 0x80050C20u;
 inline constexpr uint32_t kUiDrawNumTimebox = 0x80050E6Cu;
 inline constexpr uint32_t kUiDrawSpeedNeedle = 0x800511C0u;
 inline constexpr uint32_t kUiDrawSpeedBg = 0x800516ACu;
@@ -215,6 +217,15 @@ inline constexpr uint32_t kUiDrawRankedDrivers = 0x800524C4u;
 inline constexpr uint32_t kUiRenderFrameRacing = 0x80052F98u;
 // UI_RenderFrame_AdvHub, the next function.
 inline constexpr uint32_t kUiRenderFrameRacingEnd = 0x80054298u;
+
+// RenderBucket_Execute(list, primMem): every queued instance drawn in list order, each one's packets contiguous.
+inline constexpr uint32_t kRenderBucketExecute = 0x8006AAA8u;
+// A list entry: model header (0 ends the list), instance.
+inline constexpr uint32_t kRenderListEntryBytes = 8u;
+inline constexpr uint32_t kRenderListInstanceOffset = 4u;
+// The HUD instances a driver's rank suffix and wumpa count sit beside (instBigNum, instFruitDisp).
+inline constexpr uint32_t kDriverRankDigitOffset = 0x498u;
+inline constexpr uint32_t kDriverWumpaFruitOffset = 0x49Cu;
 
 // Overlay 233's CS_Thread_UseOpcode; its call with no instance tests the scene's Start skip.
 inline constexpr uint32_t kCutsceneUseOpcode = 0x800AC840u;

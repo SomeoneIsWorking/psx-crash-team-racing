@@ -11,6 +11,7 @@
 #include "frame/frame_callback_owner.h"
 #include "frame/frame_suffix.h"
 #include "game_runtime.h"
+#include "video/hud_anchor.h"
 #include "video/level_draw_margins.h"
 #include "video/presentation_owner.h"
 #include "video/projection_owner.h"
@@ -40,6 +41,7 @@ public:
   [[nodiscard]] const ProjectionOwner &projection() const;
   [[nodiscard]] const WidescreenOwner &widescreen() const;
   [[nodiscard]] const PresentationOwner &presentation() const;
+  [[nodiscard]] HudAnchor &hudAnchor();
 
   // Arms a track arrival; the next field raises it through the guest's own level-load request.
   std::string armWarp(uint32_t level);
@@ -79,6 +81,7 @@ private:
   ProjectionOwner projection_;
   RaceFlagDraw raceFlag_;
   LevelDrawMargins levelDraw_;
+  HudAnchor hud_;
   WidescreenOwner widescreen_;
   PresentationOwner presentation_;
   FieldBoundary field_;

@@ -23,6 +23,10 @@ The rest is tracked in issue 0042 (margin quads) and issue 0043 (loading flag).
 ## Fixed 2026-11-17
 `HudAnchor` (`game/video/hud_anchor.*`) owns `UI_RenderFrame_Racing`'s element drawers and the `DecalFont_DrawLine`
 and `DecalHUD_DrawPolyGT4` calls it makes itself; each element's packets move to the edge they sit on through psxport's
-`anchorHudElement`. The rank suffix and wumpa count stay beside the 3D digit and fruit the instance renderer draws.
-Shown on the Crash Cove replay at 16:9 (`scratch/ws-pass/race-new4-169/scratch/screenshots/present_5900.png`). The
+`anchorHudElement`. The rank suffix and the wumpa count each lead a group: the HUD instance beside it (the rank digit
+`instBigNum`, the fruit `instFruitDisp`), drawn later by `RenderBucket_Execute`, takes the same shift. Its packets are
+found by running the render list again in a `GuestRedraw` from the call's start, stopped before and after that
+instance, and checked word for word against the call's own before they move.
+Shown on the Crash Cove replay at 16:9 (`scratch/ws-pass/hud5-169/full_5900.png`; the two groups over four consecutive
+presents in `scratch/ws-pass/hud5-169/groups.png`). The
 parked owner is not used.
