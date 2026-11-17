@@ -51,6 +51,7 @@ Frame loop: not owned. Each step dispatches main-loop state 3 `0x8003C58C` for o
 | `DiscReadOwner`, `readWithCompletionCallback` | `game/disc/async_disc_owner.*` | The title's `CdRead`: the stock synchronous transfer, then the libcd completion callback owed until the loader that called `CdRead` returns |
 | `OverlayImageOwner` | `game/disc/overlay_image_owner.*` | An exact BIGFILE entry read as an image candidate, published after the retail callback relocates it |
 | `ProjectionOwner` | `game/video/projection_owner.*` | The pre-GTE publication `0x80042910`: capture the view, compare the retail libgte state, resolve the plan; the guest keeps its own `H` |
+| `RaceFlagDraw` | `game/video/race_flag_draw.*` | RaceFlag_DrawSelf `0x800444E8`, the checkered loading and menu flag: retail's grid, wave, colours and packets, its quad reject measured from the plan's left margin, and columns past retail's 35th while only a margin shows them |
 | `WidescreenOwner` | `game/video/widescreen_owner.*` | The widening plan, resolved once from the extent the guest's own publication carried |
 | `GuestViewProjection` | `game/video/view_projection_plan.h` | The view facts the publication carries (width, height, `H`) |
 | `PresentationOwner` | `game/video/presentation_owner.*` | The one `presentation.commit` per field; samples `SceneCut` first |

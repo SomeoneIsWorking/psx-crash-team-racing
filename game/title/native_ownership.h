@@ -104,6 +104,27 @@ inline constexpr uint32_t kMainStateRunning = 3u;
 inline constexpr uint32_t kRequestLevelLoad = 0x8003CFC0u;
 inline constexpr uint32_t kLoadRequestGpOffset = 0x18Cu;
 inline constexpr uint32_t kNoLoadRequest = 0xFFFFFFFFu;
+// RaceFlag_DrawSelf 0x800444E8: the checkered loading flag, a 35-column grid of 10 RTPT rows per column, with its own
+// projection (OFX 256, OFY 120, H 256). Called once, from 0x80037830 in 0x80035E70.
+inline constexpr uint32_t kRaceFlagDraw = 0x800444E8u;
+inline constexpr uint32_t kRaceFlagDrawLoadingString = 0x800442A0u;
+inline constexpr uint32_t kRaceFlagOrderingTable = 0x800440A0u;
+inline constexpr uint32_t kRaceFlagMatrix = 0x80085AC0u;
+// Five words: angle 1, amplitude, angle 2, speed, phase.
+inline constexpr uint32_t kRaceFlagWave = 0x80085AE0u;
+inline constexpr uint32_t kTrigTable = 0x800845A0u;
+inline constexpr uint32_t kRaceFlagPositionGpOffset = 0x4D8u;
+inline constexpr uint32_t kRaceFlagCanDrawGpOffset = 0x4DCu;
+inline constexpr uint32_t kRaceFlagTextFrameGpOffset = 0x4E4u;
+inline constexpr uint32_t kRaceFlagElapsedGpOffset = 0x4ECu;
+inline constexpr uint32_t kRaceFlagLoadStageCopyGpOffset = 0x4F0u;
+// Two banks of 30 SXY words; the write cursor starts one word before its bank.
+inline constexpr uint32_t kRaceFlagScreenBank = 0x1F800000u;
+// gGT: elapsed milliseconds this frame, the back buffer; DB: primitive cursor and its guard end.
+inline constexpr uint32_t kTrackerElapsedMsOffset = 0x1D04u;
+inline constexpr uint32_t kTrackerBackBufferOffset = 0x10u;
+inline constexpr uint32_t kBufferPrimCursorOffset = 0x80u;
+inline constexpr uint32_t kBufferPrimGuardOffset = 0x84u;
 // Level ids 0..0x11 are the race tracks; the mode the menu set up for one track holds for another.
 inline constexpr uint32_t kLastRaceTrackLevel = 0x11u;
 

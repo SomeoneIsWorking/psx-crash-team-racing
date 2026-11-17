@@ -64,6 +64,7 @@ add_library(
   game/runtime/session.cpp
   game/video/presentation_owner.cpp
   game/video/projection_owner.cpp
+  game/video/race_flag_draw.cpp
   game/video/scene_cut.cpp
   game/video/widescreen_owner.cpp
 )

@@ -50,7 +50,7 @@ void FrameDriver::stepFrame(Core &core, uint32_t frame) {
     widescreen_.latchPlan(projectionCore, view);
   });
 
-  const std::array<FieldOverrideBinding, 9> fieldOverrides{{
+  const std::array<FieldOverrideBinding, 10> fieldOverrides{{
       {native::kStartupGpuInit, "startup GPU VSync owner", onStartupGpuVSync},
       {native::kStartupDisplayInit, "startup display VSync owner", onStartupDisplayVSync},
       {native::kBootResourceWait, "boot resource wait owner", onBootResourceWait},
@@ -59,6 +59,7 @@ void FrameDriver::stepFrame(Core &core, uint32_t frame) {
       {native::kShutdownDisplay, "shutdown VSync owner", onShutdownVSync},
       {native::kFrameTiming, "frame timing owner", onFrameTiming},
       {native::kProjectionProducer, "projection owner", onProjectionProducer},
+      {native::kRaceFlagDraw, "race flag draw owner", onRaceFlagDraw},
       {native::kDmaCallback, "DMA callback registration owner", onDmaCallbackRegistration},
   }};
   const FieldOverrideScope overrides(core, fieldOverrides);
@@ -277,6 +278,10 @@ void FrameDriver::onFrameTiming(Core *core) {
 
 void FrameDriver::onProjectionProducer(Core *core) {
   core->game->frameDriverAs<FrameDriver>().publishMeasuredProjection(*core);
+}
+
+void FrameDriver::onRaceFlagDraw(Core *core) {
+  core->game->frameDriverAs<FrameDriver>().raceFlag_.draw(*core);
 }
 
 void FrameDriver::publishMeasuredProjection(Core &core) {
