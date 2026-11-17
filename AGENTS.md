@@ -41,7 +41,7 @@ evidence only.
 
 `SCUS_944.26` is LBA 24, 516,096 bytes, SHA-256 `7b4aac0bf2f6310984e599295df17b457da5a23b270c20200cefef6079efb838`,
 load `0x80010000`, text `[0x80010000,0x8008D800)`, header stack `0x801FFFF0`; the full measured set
-and the ordered RE status of each area are in `titles/ctr/README.md` and `docs/re-frontier.md`. CTR
+and the ordered RE status of each area are in `titles/ctr/README.md` and `external/ctr-decomp/docs/re-frontier.md`. CTR
 runs at 2 fields per game frame (30 fps), paced by a two-field countdown at `[gp+0x348]` drained by
 the vertical-blank callback; the single `VSync(2)` in the image is a boot resource load, not the
 frame loop. `H` has 4 measured readers, so widening it also moves the guest's own derived viewport.

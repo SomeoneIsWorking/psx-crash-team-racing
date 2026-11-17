@@ -1,7 +1,7 @@
 # Codemap
 
 Where code lives in the CTR port. Capability state is in `docs/project-state.md`, feature hops in
-`docs/features.md`, migration order in `docs/migration.md`, the evidence chain in `docs/re-frontier.md`, atomic
+`docs/features.md`, migration order in `docs/migration.md`, the evidence chain in `external/ctr-decomp/docs/re-frontier.md`, atomic
 work in `docs/issues/`. The framework side is `external/psxport/docs/codemap.md`.
 
 Product path: `run.sh` → `tools/run.py` (provision, build) → the framework main (`psxport_add_product`, target
@@ -76,7 +76,7 @@ Frame loop: not owned. Each step dispatches main-loop state 3 `0x8003C58C` for o
 
 | Responsibility | Owner |
 |---|---|
-| A measured address | `game/title/native_ownership.h`, and the chain in `docs/re-frontier.md` |
+| A measured address | named in the decomp's map (`external/ctr-decomp/config/symbols/`) first, then `game/title/native_ownership.h` until plan 0047 generates it |
 | Calling or re-entering guest code | `game/execution/guest_turns.*` only |
 | A stock library binding or a platform leaf | `Runtime::registerOverrides`, `game/execution/platform_leaves.*` |
 | A field override or a per-field decision | `ctr::FrameDriver` and the smallest owner in its ladder |

@@ -15,16 +15,8 @@ The selected target is the North American disc whose `SYSTEM.CNF` names
 
 `executable.json` holds these identity facts for the build and `tools/provision.py`.
 
-Measured crt0 facts include BSS `[0x8008D668,0x8009F6FC)`, GP `0x8008CF6C`, stack top
-`0x807FFFF8`, heap base `0x8009F6FC`, heap size `0x007588FC`, and libc initializer `0x80080620`.
-The independent CPU reaches InitHeap after 92,378 instructions. Recorded comparison evidence then
-reaches `0x8003C58C`, `0x800779E4`, `0x80032DC0`, `0x8001D06C`, `0x800718BC`, and pre-instruction
-`0x800772E0`. The per-step status of every reverse-engineered area is in
-`../../docs/re-frontier.md`.
-
-Render-source evidence grounds `SetGeomScreen [0x8007781C,0x80077828)`, `SetGeomOffset
-[0x8007782C,0x80077844)`, projection publication `[0x80042910,0x80042974)`, and lens-flare producer
-`[0x80024C4C,0x80025138)`. These are source boundaries, not a native renderer.
+The image layout (sections, crt0, overlays), the symbol map and the RE evidence chain are in the decomp,
+`../../external/ctr-decomp/docs/images.md` and `../../external/ctr-decomp/docs/re-frontier.md`.
 
 The product maps this authenticated executable into psxport's Lightrec executor. Runtime activation
 of the measured `BIGFILE.BIG` images remains incomplete. Do not emit, build, or run generated guest

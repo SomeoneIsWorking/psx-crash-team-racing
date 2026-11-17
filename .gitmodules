@@ -1,3 +1,6 @@
 [submodule "external/ctr-native"]
 	path = external/ctr-native
 	url = https://github.com/CTR-tools/ctr-native.git
+[submodule "external/ctr-decomp"]
+	path = external/ctr-decomp
+	url = https://github.com/SomeoneIsWorking/ctr-decomp.git

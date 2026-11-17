@@ -1,7 +1,7 @@
 # Native/Lightrec migration
 
 This is CTR's local execution migration plan. Measured binary facts and each area's RE status live
-in `docs/re-frontier.md`; psxport owns the shared runtime contract.
+in `external/ctr-decomp/docs/re-frontier.md`; psxport owns the shared runtime contract.
 
 ## Product boundary
 
