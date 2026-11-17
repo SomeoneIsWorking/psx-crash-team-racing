@@ -1,4 +1,5 @@
 #include "frame/frame_driver.h"
+#include "boot/crate_logo_skip.h"
 
 #include "core.h"
 #include "execution/guest_turns.h"
@@ -11,6 +12,7 @@
 #include "game.h"
 #include "runtime/session.h"
 #include "title/native_ownership.h"
+#include "video/hud_anchor.h"
 
 #include <array>
 #include <cstdlib>
@@ -50,7 +52,7 @@ void FrameDriver::stepFrame(Core &core, uint32_t frame) {
     widescreen_.latchPlan(projectionCore, view);
   });
 
-  const std::array<FieldOverrideBinding, 10> fieldOverrides{{
+  const std::array<FieldOverrideBinding, 12> fieldOverrides{{
       {native::kStartupGpuInit, "startup GPU VSync owner", onStartupGpuVSync},
       {native::kStartupDisplayInit, "startup display VSync owner", onStartupDisplayVSync},
       {native::kBootResourceWait, "boot resource wait owner", onBootResourceWait},
@@ -61,8 +63,11 @@ void FrameDriver::stepFrame(Core &core, uint32_t frame) {
       {native::kProjectionProducer, "projection owner", onProjectionProducer},
       {native::kRaceFlagDraw, "race flag draw owner", onRaceFlagDraw},
       {native::kDmaCallback, "DMA callback registration owner", onDmaCallbackRegistration},
+      {native::kLevelDraw1P, "1P level draw margin owner", onLevelDraw1P, native::kLevelDraw1PImage},
+      {native::kCutsceneUseOpcode, "crate logo skip", CrateLogoSkip::useOpcode, native::kCutsceneImage},
   }};
   const FieldOverrideScope overrides(core, fieldOverrides);
+  const FieldOverrideScope hudOverrides(core, HudAnchor::bindings());
   field_.beginField();
 
   core.game->timing.logicFrame = frame;
@@ -282,6 +287,10 @@ void FrameDriver::onProjectionProducer(Core *core) {
 
 void FrameDriver::onRaceFlagDraw(Core *core) {
   core->game->frameDriverAs<FrameDriver>().raceFlag_.draw(*core);
+}
+
+void FrameDriver::onLevelDraw1P(Core *core) {
+  core->game->frameDriverAs<FrameDriver>().levelDraw_.draw(*core);
 }
 
 void FrameDriver::publishMeasuredProjection(Core &core) {

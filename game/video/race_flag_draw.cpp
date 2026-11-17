@@ -3,7 +3,9 @@
 #include "core.h"
 #include "emit_memory.h"
 #include "execution/guest_turns.h"
+#include "frame/ordering_table_head.h"
 #include "game.h"
+#include "gp0_primitive_decode.h"
 #include "gte_registers.h"
 #include "title/native_ownership.h"
 
@@ -11,6 +13,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <vector>
 
 namespace ctr {
 namespace {
@@ -195,13 +198,16 @@ std::array<uint32_t, kColumnPoints> wordsOf(const ColumnVertices &vertices) {
 }
 
 // One packet per quad that survives the reject: a G4 between two vertical neighbours of the previous column (lit by
-// its light) and of this one, checkered by column and segment, linked at the head of the flag's OT entry.
+// its light) and of this one, checkered by column and segment, linked at the head of the flag's OT entry. A quad retail
+// would not draw (a margin column's, or one retail's 4:3 reject drops) takes no guest packet: it is a host packet drawn
+// where its link would have put it, so the pool and the table hold what retail's would.
 class QuadEmitter {
 public:
-  // The game tracker and the flag's ordering-table entry.
+  // The game tracker, the flag's ordering-table entry and the walk that draws it.
   struct Target {
     uint32_t tracker = 0;
     uint32_t ot = 0;
+    uint32_t root = 0;
   };
   // Which quad: its column (the later of the two it joins) and its segment down that column.
   struct Place {
@@ -214,15 +220,32 @@ public:
     int32_t current = 0;
   };
 
-  QuadEmitter(const EmitMemory &mem, Target target, const QuadReject &reject)
-      : mem_(mem), tracker_(target.tracker), ot_(target.ot), reject_(reject) {}
+  QuadEmitter(Core &core, const EmitMemory &mem, Target target, const QuadReject &reject)
+      : core_(core), mem_(mem), target_(target), reject_(reject), retail_(0u) {}
 
   // False when the pool never held a packet: retail returns there.
   [[nodiscard]] bool emit(Place place, Lights lights, std::array<psx::gte::ProjectedVertex, 4> corners) {
-    if (reject_.outside({corners[0].word(), corners[1].word(), corners[2].word(), corners[3].word()})) {
+    const std::array<uint32_t, 4> words{corners[0].word(), corners[1].word(), corners[2].word(), corners[3].word()};
+    if (reject_.outside(words)) {
       return true;
     }
-    const uint32_t buffer = mem_.mem_r32(tracker_ + native::kTrackerBackBufferOffset);
+    const bool dark = (((place.column >> 2) + (place.segment >> 2)) & 1) != 0;
+    const int32_t previousShade = dark ? shade(lights.previous, 105, 160) : shade(lights.previous, 130, 255);
+    const int32_t shadeHere = dark ? shade(lights.current, 105, 160) : shade(lights.current, 130, 255);
+    if (place.column <= 0 || place.column >= kColumns || retail_.outside(words)) {
+      Quad quad;
+      quad.store(0, grey(static_cast<uint32_t>(previousShade)) | (uint32_t{kPolyG4} << 24));
+      quad.storeVertex(1, corners[0]);
+      quad.store(2, grey(static_cast<uint32_t>(shadeHere)));
+      quad.storeVertex(3, corners[2]);
+      quad.store(4, grey(static_cast<uint32_t>(previousShade)));
+      quad.storeVertex(5, corners[1]);
+      quad.store(6, grey(static_cast<uint32_t>(shadeHere)));
+      quad.storeVertex(7, corners[3]);
+      pending_.push_back(quad);
+      return true;
+    }
+    const uint32_t buffer = mem_.mem_r32(target_.tracker + native::kTrackerBackBufferOffset);
     const uint32_t cursor = mem_.mem_r32(buffer + native::kBufferPrimCursorOffset);
     if (mem_.mem_r32(buffer + native::kBufferPrimGuardOffset) >= cursor) {
       poly_ = cursor;
@@ -232,9 +255,6 @@ public:
     if (poly_ == 0u) {
       return false;
     }
-    const bool dark = (((place.column >> 2) + (place.segment >> 2)) & 1) != 0;
-    const int32_t previousShade = dark ? shade(lights.previous, 105, 160) : shade(lights.previous, 130, 255);
-    const int32_t shadeHere = dark ? shade(lights.current, 105, 160) : shade(lights.current, 130, 255);
     mem_.storeVertex(poly_ + 0x08u, corners[0]);
     mem_.storeVertex(poly_ + 0x18u, corners[1]);
     mem_.storeVertex(poly_ + 0x10u, corners[2]);
@@ -245,16 +265,35 @@ public:
     mem_.mem_w8(poly_ + 0x07u, kPolyG4);
     mem_.mem_w32(poly_ + 0x0Cu, grey(static_cast<uint32_t>(shadeHere)));
     mem_.mem_w32(poly_ + 0x1Cu, grey(static_cast<uint32_t>(shadeHere)));
-    mem_.mem_w32(poly_, (mem_.mem_r32(poly_) & ~kOtAddressMask) | (mem_.mem_r32(ot_) & kOtAddressMask));
-    mem_.mem_w32(ot_, (mem_.mem_r32(ot_) & ~kOtAddressMask) | (poly_ & kOtAddressMask));
+    mem_.mem_w32(poly_, (mem_.mem_r32(poly_) & ~kOtAddressMask) | (mem_.mem_r32(target_.ot) & kOtAddressMask));
+    mem_.mem_w32(target_.ot, (mem_.mem_r32(target_.ot) & ~kOtAddressMask) | (poly_ & kOtAddressMask));
+    insertPendingAfter(poly_);
     return true;
   }
 
+  // The host quads after the last guest one are the entry's newest: drawn first, right after the entry.
+  void finish() {
+    insertPendingAfter(target_.ot);
+  }
+
 private:
+  using Quad = psx::gpu::PacketBuffer<kPolyWords>;
+
+  // The host quads emitted since the guest packet before `node` (in emission order) are drawn right after it, newest
+  // first, as their links would have run.
+  void insertPendingAfter(uint32_t node) {
+    for (auto quad = pending_.rbegin(); quad != pending_.rend(); ++quad) {
+      core_.hostPackets.insertAfter(core_, target_.root, node, quad->view(), native::kRaceFlagDraw);
+    }
+    pending_.clear();
+  }
+
+  Core &core_;
   const EmitMemory &mem_;
-  uint32_t tracker_;
-  uint32_t ot_;
+  Target target_;
   const QuadReject &reject_;
+  QuadReject retail_;
+  std::vector<Quad> pending_;
   uint32_t poly_ = 0u;
 };
 
@@ -314,7 +353,7 @@ void RaceFlagDraw::draw(Core &core) const {
   }
 
   const QuadReject reject(static_cast<uint32_t>(core.game->guestDisplay.plan().presentationHorizontalMargin));
-  QuadEmitter quads(mem, {.tracker = tracker, .ot = ot}, reject);
+  QuadEmitter quads(core, mem, {.tracker = tracker, .ot = ot, .root = orderingTableHead(core, tracker)}, reject);
 
   // Columns before retail's first continue its sequence backwards: x, ripple and wave phase are linear in the column.
   ColumnVertices inner{};
@@ -344,6 +383,7 @@ void RaceFlagDraw::draw(Core &core) const {
       if (!quads.emit({.column = 1 - before, .segment = segment},
                       {.previous = light, .current = innerLight},
                       {outer[at], outer[at + 1], inner[at], inner[at + 1]})) {
+        quads.finish();
         return;
       }
     }
@@ -396,12 +436,14 @@ void RaceFlagDraw::draw(Core &core) const {
         write += 4u;
         if (!quads.emit(
                 {.column = columnIndex, .segment = segment}, {.previous = rightLight, .current = leftLight}, corners)) {
+          quads.finish();
           return;
         }
       }
     }
     rightLight = leftLight;
   }
+  quads.finish();
   mem.mem_w32(gp + native::kRaceFlagElapsedGpOffset, elapsed + static_cast<uint32_t>(elapsedMs * 100));
 }
 

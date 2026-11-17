@@ -1,11 +1,11 @@
 ---
 id: 42
 title: At 16:9 the outer margin loses whole quads, leaving a sawtooth edge
-status: open
+status: fixed
 state_items: S006
 tags: widescreen,race,culling
 created: 2026-10-29
-updated: 2026-11-15
+updated: 2026-11-17
 ---
 
 ## Observed
@@ -32,3 +32,12 @@ retail width and cost.
   these quads (that widening is withdrawn, issue 0045).
 - Not `H`: `H` stays retail, so a quad in the margin has guest screen X below 0 or above 511.
 - Issue 0032 measured 8.7% fewer `0x30`/`0x34` prims at 16:9 under the old zoomed plan.
+
+## Fixed 2026-11-17 (1P)
+`LevelDrawMargins` (`game/video/level_draw_margins.*`) leaves the guest's call retail's (width, time, pool, table
+links), then runs the same call again inside a `GuestRedraw` (guest time held, every store put back) from the same
+table and pool with the view rect spanning the drawn columns. The polygons retail's window rejects are read out of
+that run and drawn as host packets, moved back by the left margin with their vertex places, in their buckets after
+the call's own. Drawing wide in the guest's own call cost guest time and pool: the race moved (clock +1, AI drivers
+apart at field 6,000), and the larger frame starved the loading flag's pool on a mid-race load.
+The 2P-4P draws (overlays 227-229) are not owned yet.

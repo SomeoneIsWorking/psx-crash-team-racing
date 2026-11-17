@@ -1,10 +1,11 @@
 ---
 id: 46
 title: The Naughty Dog crate refuses Start for its first 5.8 seconds
-status: open
+status: fixed
 state_items: S011
 tags: skip,boot,logo
 created: 2026-11-17
+updated: 2026-11-17
 ---
 
 ## Observed
@@ -18,7 +19,13 @@ The skip is retail's own: overlay 233's `CS_Thread_UseOpcode` (`0x800AC840`, rea
 while `gGT->msInThisLEV >> 5 < 0xB5` (5,792 ms). Past that it stops the sequence music, calls
 `CDSYS_XAPauseRequest`, puts the flag off screen and requests the main-menu level, which also skips the Oxide intro.
 
-## Proper fix
-A title-owned skip that takes that same branch (music stop, XA fade, flag, `MainRaceTrack_RequestLoad(main menu)`)
-on a Start or Cross edge before the gate, through an override of the overlay function that owns the branch, keyed to
-overlay 233's image. Writing `msInThisLEV` forward is not a fix.
+## Fix
+`CrateLogoSkip` (`game/boot/crate_logo_skip.*`) owns overlay 233's `CS_Thread_UseOpcode` while that image is
+resident. After the scene's own call (no instance), a Start or Cross tap on the crate with no load pending takes
+retail's crate branch (decomp `docs/notes/cutscene-skip.md`); the call's camera step has run, so the frame under
+the flag is the scene's own. `msInThisLEV` is untouched.
+
+## Shown
+Cold boot, Start pulsed (`PSXPORT_FORCE_BUTTONS=0008`), 16:9, ires 0: the crate scene's first frame is field 92 and
+the flag covers it by field 130; the main menu shows at field 200, against 615 with only the voice-clip skip
+(`scratch/ws-pass/crate4/sheet.png`, `scratch/ws-pass/crate2/sheet.png`).

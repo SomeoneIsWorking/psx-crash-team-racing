@@ -5,6 +5,7 @@
 #include "identity/executable_identity.h"
 
 #include <cstdint>
+#include <string_view>
 
 namespace ctr::native {
 
@@ -140,6 +141,20 @@ inline constexpr uint32_t kProjectionReturnOverlay = 0x8003F5C8u;
 inline constexpr uint32_t kViewScreenDistanceOffset = 0x18u;
 inline constexpr uint32_t kViewRectWidthOffset = 0x20u;
 inline constexpr uint32_t kViewRectHeightOffset = 0x22u;
+inline constexpr uint32_t kViewRectXOffset = 0x1Cu;
+
+// DrawLevelOvr1P, overlay 226's 1P level renderer: OFX and its packed clip window both come from the view's rect
+// (w, h); a polygon wholly left of column 0 or at or right of column w is rejected. a1 = view, a3 = primitive memory.
+inline constexpr uint32_t kLevelDraw1P = 0x800A0CBCu;
+inline constexpr std::string_view kLevelDraw1PImage = "BF0226";
+inline constexpr uint32_t kViewArgumentRegister = 5u;
+inline constexpr uint32_t kPrimMemArgumentRegister = 7u;
+// PrimMem: the allocation cursor; packets lie end to end below it.
+inline constexpr uint32_t kPrimMemCursorOffset = 0xCu;
+inline constexpr uint32_t kPrimMemGuardEndOffset = 0x10u;
+// The view's ordering table (pushBuffer.ptrOT), 0x400 entries.
+inline constexpr uint32_t kViewOrderingTableOffset = 0xF4u;
+inline constexpr uint32_t kOrderingTableEntries = 0x400u;
 
 inline constexpr uint32_t kVSync = 0x80075350u;
 inline constexpr uint32_t kVSyncEnd = 0x80075560u;
@@ -179,5 +194,50 @@ inline constexpr uint32_t kStartupProjectionHDelay = 0x8003C85Cu;
 inline constexpr uint32_t kCdSync = 0x8007B6F0u;
 // libcd's CD_cw(com, param, result, async): 0 once the command is acknowledged.
 inline constexpr uint32_t kCdCommand = 0x8007BC38u;
+
+// The race HUD's element drawers (UI_RenderFrame_Racing's callees) and the shared drawers it also calls itself.
+inline constexpr uint32_t kDecalFontDrawLine = 0x80022878u;
+inline constexpr uint32_t kDecalHudDrawPolyGt4 = 0x80023054u;
+inline constexpr uint32_t kUiMapDrawMap = 0x8004D614u;
+inline constexpr uint32_t kUiMapDrawDrivers = 0x8004DD5Cu;
+inline constexpr uint32_t kUiMapDrawGhosts = 0x8004DEE8u;
+inline constexpr uint32_t kUiMapDrawTracking = 0x8004DFFCu;
+inline constexpr uint32_t kUiDrawRaceClock = 0x8004EDACu;
+inline constexpr uint32_t kUiDrawLapCount = 0x80050528u;
+inline constexpr uint32_t kUiWeaponDrawSelf = 0x800507E0u;
+inline constexpr uint32_t kUiWeaponDrawBg = 0x80050AF8u;
+inline constexpr uint32_t kUiDrawNumTimebox = 0x80050E6Cu;
+inline constexpr uint32_t kUiDrawSpeedNeedle = 0x800511C0u;
+inline constexpr uint32_t kUiDrawSpeedBg = 0x800516ACu;
+inline constexpr uint32_t kUiJumpMeterDraw = 0x80051E24u;
+inline constexpr uint32_t kUiDrawSlideMeter = 0x80052250u;
+inline constexpr uint32_t kUiDrawRankedDrivers = 0x800524C4u;
+inline constexpr uint32_t kUiRenderFrameRacing = 0x80052F98u;
+// UI_RenderFrame_AdvHub, the next function.
+inline constexpr uint32_t kUiRenderFrameRacingEnd = 0x80054298u;
+
+// Overlay 233's CS_Thread_UseOpcode; its call with no instance tests the scene's Start skip.
+inline constexpr uint32_t kCutsceneUseOpcode = 0x800AC840u;
+inline constexpr std::string_view kCutsceneImage = "BF0233";
+// The cutscene's decoded opcode, which a taken skip restores to its entry value.
+inline constexpr uint32_t kCutsceneOpcodeOffset = 0x4Cu;
+inline constexpr uint32_t kCutsceneOpcodeWords = 5u;
+// CS_FINISHED, overlay 233 data.
+inline constexpr uint32_t kCutsceneFinished = 0x800B7760u;
+inline constexpr uint32_t kNaughtyDogCrateLevel = 0x29u;
+inline constexpr uint32_t kMainMenuLevel = 0x27u;
+inline constexpr uint32_t kGamepadTappedOffset = 0x14u;
+inline constexpr uint32_t kButtonStart = 0x1000u;
+inline constexpr uint32_t kButtonCross = 0x10u;
+inline constexpr uint32_t kTrackerGameMode2Offset = 0x8u;
+inline constexpr uint32_t kGameMode2FreezePodium = 0x4u;
+inline constexpr uint32_t kTrackerClockEffectOffset = 0x2570u;
+inline constexpr uint16_t kClockEffectCameraPath = 0x1u;
+inline constexpr uint32_t kCseqMusicStopAll = 0x80029258u;
+inline constexpr uint32_t kRaceFlagIsFullyOnScreen = 0x80043F1Cu;
+inline constexpr uint32_t kRaceFlagIsTransitioning = 0x80043F44u;
+inline constexpr uint32_t kRaceFlagSetDrawOrder = 0x80043F8Cu;
+inline constexpr uint32_t kRaceFlagSetFullyOffScreen = 0x80044058u;
+inline constexpr uint32_t kRaceFlagSetCanDraw = 0x80044088u;
 
 } // namespace ctr::native

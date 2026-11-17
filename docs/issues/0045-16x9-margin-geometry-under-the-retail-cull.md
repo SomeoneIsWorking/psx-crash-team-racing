@@ -22,3 +22,7 @@ clocks and all eight driver positions are equal at 5,400, 6,000, 6,500 and 6,940
 ## Proper fix
 Draw margin-only geometry from a list beside retail's: run the cull at retail width for the guest, and submit what a
 684-wide frustum adds as host-side primitives that write no guest memory and spend no guest time.
+
+## 2026-11-17
+The per-quad reject is owned (issue 0042); what still bounds the margins is the retail frustum's block lists, which
+the wide redraw reuses. On the Crash Cove replay the margins fill at fields 5,700-5,998.

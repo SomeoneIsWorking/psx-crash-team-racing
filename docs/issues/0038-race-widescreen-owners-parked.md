@@ -1,7 +1,7 @@
 ---
 id: 38
 title: Race widescreen owners are parked, not landed
-status: open
+status: fixed
 tags: widescreen,race,hud
 created: 2026-10-14
 ---
@@ -20,6 +20,9 @@ distance scale to 1/1.
 The distance scale is 1/1: scaling `H` zoomed the picture. The frustum owner is `game/video/view_frustum_owner.*`.
 The rest is tracked in issue 0042 (margin quads) and issue 0043 (loading flag).
 
-## Next
-The HUD anchor owner (`scratch/parked-race-widescreen/hud_anchor_owner.*`): re-apply it on the current frame
-driver, so edge-anchored HUD items move into the margins.
+## Fixed 2026-11-17
+`HudAnchor` (`game/video/hud_anchor.*`) owns `UI_RenderFrame_Racing`'s element drawers and the `DecalFont_DrawLine`
+and `DecalHUD_DrawPolyGT4` calls it makes itself; each element's packets move to the edge they sit on through psxport's
+`anchorHudElement`. The rank suffix and wumpa count stay beside the 3D digit and fruit the instance renderer draws.
+Shown on the Crash Cove replay at 16:9 (`scratch/ws-pass/race-new169c/scratch/screenshots/present_5900.png`). The
+parked owner is not used.

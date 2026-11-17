@@ -37,21 +37,25 @@ Frame loop: not owned. Each step dispatches main-loop state 3 `0x8003C58C` for o
 | `SpuDmaCallbackRegistration` | `game/execution/spu_dma_callback_registration.*` | Runs the retail DMACallback `0x8008044C` and publishes the guest's SPU channel-4 callback to psxport's `DmaCallbackRegistry` |
 | `ctr::FrameDriver` | `game/frame/frame_driver.*` | One state-3 frame per step: the logic to RenderFrame's entry, the draw replay's samples, the draw to its suffix, then the fields the suffix waits on (each field the guest clock reached, with its VBlank and DrawSync callbacks, pad and SPU) and the suffix's DrawOTag; commits the step's fields. Boot and load waits stay one field per step. `FrameDriver::from(core)` resolves the driver for a bare guest override |
 | `DrawSection` | `game/frame/draw_section.*` | `MainFrame_RenderFrame` from its entry to the frame-timing call, the memory-card poll skipped; the ordering-table head DrawOTag sends |
+| `orderingTableHead` | `game/frame/ordering_table_head.h` | The entry DrawOTag starts the frame's walk at |
 | `DrawReplay`, `InstancePool` | `game/frame/draw_replay.*` | The replay frame and its tracks: the push-buffer views' pos/rot, each live instance's matrix keyed by model and thread (liveness from the pool's taken list), each driver's ground-shadow inputs keyed by its instance |
 | `FieldBoundary` | `game/frame/field_boundary.*` | When a field ends: the title's request or the framework's typed frame-boundary exit; finishing it commits one fence |
-| `FieldOverrideScope` | `game/frame/field_override_scope.*` | Installs the field's guest-address overrides on entry and removes exactly those on exit |
+| `FieldOverrideScope` | `game/frame/field_override_scope.*` | Installs the field's guest-address overrides on entry, an overlay's only while its image is resident, and removes exactly those on exit |
 | `FrameSuffix`, `frameSuffixStillWaiting` | `game/frame/frame_suffix.*` | The timing bridge with its debug `VSync(0)` omitted, the three words the retail suffix `0x80037880` waits on, and the suffix run from host context once they clear |
 | `FrameCallbackOwner` | `game/frame/frame_callback_owner.*` | The DrawSync callback owed at the field seam and a poll of the latched vblank edge, so libetc's ISR runs once per field |
 | `runVsyncBridge`, `refuseUnexpectedRetailReturn` | `game/frame/vsync_bridge.*`, `retail_return.*` | One VSync callsite omitted with its register effects kept; the refusal for an unmeasured return address |
 | `StartupResourceLoad` | `game/boot/startup_resource_load.*` | The −1 branch of `0x80031FDC`: retail setup and commit, the field its omitted `VSync(2)` owed, the caller it resumes |
 | `StartupResourcePump` | `game/boot/startup_resource_pump.*` | The two `0x8002DD24` poll loops, one host field per false poll |
 | `StartupAudioWait` | `game/boot/startup_audio_wait.*` | The post-archive XA wait on `0x8008D708`, one audio field per service call |
+| `CrateLogoSkip` | `game/boot/crate_logo_skip.*` | Overlay 233's `CS_Thread_UseOpcode`: Start or Cross on the Naughty Dog crate takes retail's crate skip branch without its 5.8 s gate |
 | `ctr::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): the warp catalogue (`track 0xNN`) over `LevelWarp` |
 | `LevelWarp` | `game/debug/level_warp.*` | The track arrival: armed during a race with no load pending, applied at the next field start through the guest's own level-load request `0x8003CFC0`; reached from `DebugMenu` through `FrameDriver::armWarp` |
 | `DiscReadOwner`, `readWithCompletionCallback` | `game/disc/async_disc_owner.*` | The title's `CdRead`: the stock synchronous transfer, then the libcd completion callback owed until the loader that called `CdRead` returns |
 | `OverlayImageOwner` | `game/disc/overlay_image_owner.*` | An exact BIGFILE entry read as an image candidate, published after the retail callback relocates it |
 | `ProjectionOwner` | `game/video/projection_owner.*` | The pre-GTE publication `0x80042910`: capture the view, compare the retail libgte state, resolve the plan; the guest keeps its own `H` |
-| `RaceFlagDraw` | `game/video/race_flag_draw.*` | RaceFlag_DrawSelf `0x800444E8`, the checkered loading and menu flag: retail's grid, wave, colours and packets, its quad reject measured from the plan's left margin, and columns past retail's 35th while only a margin shows them |
+| `RaceFlagDraw` | `game/video/race_flag_draw.*` | RaceFlag_DrawSelf `0x800444E8`, the checkered loading and menu flag: retail's grid, wave, colours and packets, its quad reject measured from the plan's left margin, and columns past retail's 35th while only a margin shows them; a quad retail would not draw is a host packet, so the pool and table hold retail's |
+| `LevelDrawMargins` | `game/video/level_draw_margins.*` | Overlay 226's `DrawLevelOvr1P`: retail's call, then the same call sandboxed with the view rect spanning both margins; the polygons only that run drew become host packets |
+| `HudAnchor` | `game/video/hud_anchor.*` | The race HUD's element drawers, each one's packets moved to the edge they sit on (psxport `anchorHudElement`) |
 | `WidescreenOwner` | `game/video/widescreen_owner.*` | The widening plan, resolved once from the extent the guest's own publication carried |
 | `GuestViewProjection` | `game/video/view_projection_plan.h` | The view facts the publication carries (width, height, `H`) |
 | `PresentationOwner` | `game/video/presentation_owner.*` | The one `presentation.commit` per field; samples `SceneCut` first |

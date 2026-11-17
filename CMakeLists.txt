@@ -41,6 +41,7 @@ add_custom_command(
 add_library(
   ctr_game STATIC
   "${CTR_OVERLAY_CATALOG}"
+  game/boot/crate_logo_skip.cpp
   game/boot/startup_audio_wait.cpp
   game/boot/startup_resource_load.cpp
   game/boot/startup_resource_pump.cpp
@@ -62,6 +63,8 @@ add_library(
   game/frame/vsync_bridge.cpp
   game/runtime/runtime.cpp
   game/runtime/session.cpp
+  game/video/hud_anchor.cpp
+  game/video/level_draw_margins.cpp
   game/video/presentation_owner.cpp
   game/video/projection_owner.cpp
   game/video/race_flag_draw.cpp

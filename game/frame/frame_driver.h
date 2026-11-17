@@ -11,6 +11,7 @@
 #include "frame/frame_callback_owner.h"
 #include "frame/frame_suffix.h"
 #include "game_runtime.h"
+#include "video/level_draw_margins.h"
 #include "video/presentation_owner.h"
 #include "video/projection_owner.h"
 #include "video/race_flag_draw.h"
@@ -54,6 +55,7 @@ private:
   static void onFrameTiming(Core *core);
   static void onProjectionProducer(Core *core);
   static void onRaceFlagDraw(Core *core);
+  static void onLevelDraw1P(Core *core);
   static void onDmaCallbackRegistration(Core *core);
 
   // `dispatchField` is the only place a budget exit may be resumed as the same field; with `stop` it also ends where
@@ -76,6 +78,7 @@ private:
   FrameCallbackOwner frameCallbacks_;
   ProjectionOwner projection_;
   RaceFlagDraw raceFlag_;
+  LevelDrawMargins levelDraw_;
   WidescreenOwner widescreen_;
   PresentationOwner presentation_;
   FieldBoundary field_;
